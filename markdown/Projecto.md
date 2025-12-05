@@ -1,0 +1,11 @@
+>> ACTORES
+__________________
+ADMINISTRADORES
+USUARIOS
+
+
+>> CASOS DE USO
+__________________
+GERENCIAR ENQUETES
+VOTAR
+gER
