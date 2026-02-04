@@ -31,7 +31,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
-    'jazzmin',
+    'unfold',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'pages.apps.PagesConfig',
+    'authentication.apps.AuthenticationConfig',
 ]
 
 MIDDLEWARE = [
@@ -76,12 +77,12 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django.db.backends.mysql',
         'NAME': 'votaaki',
-        'USER':'postgres',
-        'PASSWORD':'20070404%@',
+        'USER':'root',
+        'PASSWORD':'',
         'HOST':'localhost',
-        'PORT':'5432',
+        'PORT':'3306',
     }
 }
 
@@ -110,7 +111,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'pt-br'
 
-TIME_ZONE = 'America/Sao_Paulo'
+TIME_ZONE = 'Africa/Luanda'
 
 USE_I18N = True
 
@@ -128,3 +129,121 @@ STATICFILES_DIRS=[
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+UNFOLD = {
+ 
+    "SITE_TITLE": "Vota Aki",
+    "SITE_HEADER": "Painel Administrativo Vota Aki",
+    "SITE_URL": "http://localhost:8000",
+    "SITE_SYMBOL": "bet", # Símbolo do Material Symbols
+    "SHOW_HISTORY": True, # Mostra botão de histórico
+    "SHOW_VIEW_ON_SITE": False, # Mostra botão ver no site
+    #"THEME": "dark", # Tema padrão dark
+    
+    "SITE_ICON": {
+       # "light": lambda request: static("image/favicon.ico"),
+        #"dark": lambda request: static("image/favicon.ico"),
+    },
+    
+    # Menu
+   
+  "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": True,
+        "navigation": [
+            {
+                "title": "Dashboard",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Dashboards",
+                        "icon": "dashboard",
+                        "link": lambda request: "/admin",
+                    },
+                 
+                ],
+            },
+            {
+                "title": "Autenticação",
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": "Usuarios",
+                        "icon": "supervisor_account",
+                        "link": lambda request: "/admin/auth/user/",
+                    },
+                    {
+                        "title": "Grupos de Usuarios",
+                        "icon": "groups",
+                        "link": lambda request: "/admin/auth/group/",
+                    },
+                   
+                   
+                ],
+            },
+            {
+                "title": "Arena",
+                "separator": True,
+                "collapsible": True,
+
+                "items": [
+                    {
+                        "title": "Enquetes",
+                        "icon": "menu_book",
+                        "link": lambda request: "/admin/pages/pollsmodel/",
+                    },
+                    {
+                        "title": "Opções de Voto",
+                        "icon": "groups",
+                        "link": lambda request: "/admin/pages/polloptionmodel/",
+                    },
+                    {
+                        "title": "Votos",
+                        "icon": "subject",
+                        "link": lambda request: "/admin/pages/votesmodel/",
+                    },
+                  
+                ],
+            },
+ 
+        
+        ],
+},
+    
+   
+
+    # EXTENSIONS
+  "COLORS": {
+        "primary": {
+            "50": "236 253 245",
+            "100": "209 250 229",
+            "200": "167 243 208",
+            "300": "110 231 183",
+            "400": "52 211 153",
+            "500": "16 185 129",    
+            "600": "5 150 105",
+            "700": "4 120 87",
+            "800": "6 95 70",
+            "900": "6 78 59",
+            "950": "2 44 34",
+        },
+        "font": {
+            "subtle": "156 163 175", 
+        }
+    },
+    
+  "EXTENSIONS": {
+        "modeltranslation": {
+            "flags": {
+                "en": "🇬🇧",
+                "pt": "🇦🇴",
+            },
+        },
+    },
+    
+    
+
+ 
+   
+}

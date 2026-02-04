@@ -1,0 +1,74 @@
+/* Efeitos Premium para Django Admin Unfold */
+
+:root {
+    --primary-glow: rgba(16, 185, 129, 0.15);
+}
+
+/* Glassmorphism para os cards do dashboard */
+.unfold-dashboard-card, .unfold-card {
+    background: rgba(30, 41, 59, 0.702) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+    border-radius: 12px !important;
+    transition: all 0.3s ease !important;
+}
+
+.unfold-dashboard-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(16, 185, 129, 0.3) !important;
+    box-shadow: 0 12px 40px 0 rgba(16, 185, 129, 0.1) !important;
+}
+
+/* Badges mais nítidos e redondos */
+.badge {
+    border-radius: 20px !important;
+    padding: 0.35em 0.8em !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.02em !important;
+    text-transform: uppercase !important;
+    font-size: 0.7rem !important;
+}
+
+/* Barra lateral animada e limpa */
+#unfold-sidebar {
+    background: #0f172a !important; /* Slate-900 */
+    border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+#unfold-sidebar .sidebar-nav-item:hover {
+    background: rgba(16, 185, 129, 0.1) !important;
+    color: #10b981 !important;
+}
+
+/* Tabelas mais profissionais */
+.unfold-table thead th {
+    background: #1e293b !important;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    color: #94a3b8 !important;
+}
+
+.unfold-table tbody tr:hover {
+    background: rgba(16, 185, 129, 0.03) !important;
+}
+
+/* Scrollbar fina e moderna */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(16, 185, 129, 0.2);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(16, 185, 129, 0.4);
+}
