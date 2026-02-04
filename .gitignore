@@ -1,1 +1,35 @@
 markdown/*
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+env/
+venv/
+.env
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Django
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+/static/  # Apenas se você usa collectstatic em produção para uma pasta raiz
+
+# IDEs e Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Logs e Testes
+*.log
+.coverage
+htmlcov/
+.pytest_cache/
