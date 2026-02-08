@@ -1,80 +1,89 @@
- # Projeto : Aplicativo de Votos
+# 🗳️ Sistema de Enquetes e Votação Online
 
-## Descrição
-O **Aplicativo de Votos** é uma plataforma para criação e gerenciamento de **Enquetes online**, permitindo que utilizadores registrados possam votar em opções pré-definidas. O sistema garante a **integridade dos votos** e apresenta os resultados de forma clara e transparente.
-
----
-
-## Domínio do Problema
-- Administradores podem **criar enquetes**, definindo:
-  - Título
-  - Descrição
-  - Opções de voto (mínimo de 2)
-  - Período de votação (data de início e fim)
-- Utilizadores registrados e logados podem:
-  - Votar em enquetes ativas (apenas uma vez por enquete)
-  - Visualizar resultados após votar ou quando a enquete estiver encerrada
-- O sistema deve:
-  - Garantir que cada utilizador vote apenas uma vez
-  - Exibir resultados com **contagem de votos e percentuais**
-  - Manter a contagem de votos **precisa e atualizada**
+![Status](https://img.shields.io/badge/status-em%20desenvolvimento-yellow)
+![React](https://img.shields.io/badge/React-Front--end-blue?logo=react)
+![Django](https://img.shields.io/badge/Django-Back--end-darkgreen?logo=django)
+![MySQL](https://img.shields.io/badge/MySQL-Database-orange?logo=mysql)
+![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 ---
 
-##  Funcionalidades
-- **Autenticação de utilizadores** (login e registro)
-- **Criação de enquetes** (somente administradores)
-- **Gestão de opções de voto**
-- **Controle de período de votação**
-- **Registro único de voto por utilizador**
-- **Exibição de resultados**:
-  - Número de votos por opção
-  - Percentual de cada opção
+## 📌 Sobre o Projeto
+O **Sistema de Enquetes e Votação Online** é uma aplicação web desenvolvida para permitir a **criação, gestão e participação em enquetes**, garantindo **controle de período**, **voto único por utilizador** e **exibição clara dos resultados**.
+
+O projeto foi idealizado para contextos como:
+- Instituições educacionais  
+- Organizações e associações  
+- Votações internas e participativas  
+
+Prioriza:
+- ✔️ Simplicidade de uso  
+- ✔️ Integridade dos votos  
+- ✔️ Separação clara de permissões  
 
 ---
 
-##  Regras de Negócio
-- Apenas **administradores** podem criar enquetes.
-- Cada enquete deve ter **mínimo de duas opções de voto**.
-- Um utilizador pode votar **uma única vez por enquete**.
-- Votos só podem ser realizados em **enquetes ativas**.
-- Resultados só podem ser visualizados:
-  - Após o utilizador ter votado
-  - Ou quando a enquete estiver encerrada
+## 🚀 Funcionalidades Principais
+
+### 👤 Para Utilizadores
+- 🔐 **Registro e Autenticação** – criação de conta e login seguro  
+- 🗳️ **Participação em Enquetes** – votação em enquetes ativas  
+- 🚫 **Voto Único** – apenas um voto por utilizador em cada enquete  
+- 📊 **Visualização de Resultados**:
+  - Número de votos por opção  
+  - Percentual de votos por opção  
 
 ---
 
-##  Estrutura do Projeto 
-votaaki/
-├── manage.py
-├── core/                  # Configurações do projeto (settings, wsgi, asgi)
-│   ├── settings.py
-│   └── urls.py            # Root URLconf
-├── apps/                  # Pasta opcional para organizar seus apps
-│   ├── authentication/
-│   │   ├── models.py
-│   │   ├── views.py
-│   │   └── templates/
-│   │       └── authentication/
-│   │           ├── login.html
-│   │           └── signup.html
-│   ├── polls/             # Unificando votação e enquetes
-│   │   ├── models.py
-│   │   ├── views.py
-│   │   └── templates/
-│   │       └── polls/
-│   │           ├── list.html
-│   │           └── detail.html
-│   └── users/             # Gerenciamento de perfis
-│       ├── models.py
-│       └── templates/
-│           └── users/
-│               └── profile.html
-├── static/                # CSS, JS e Imagens globais
-│   ├── css/
-│   └── js/
-├── templates/             # Templates globais (base.html, navbar, etc.)
-│   ├── base.html
-│   └── partials/
-├── scripts/               # Scripts de automação ou manutenção
-└── tests/                 # Testes integrados (opcional, se não estiverem nos apps)
+### 🛡️ Para Administradores
+- 📝 **Criação de Enquetes** – acesso exclusivo para administradores  
+- ⚙️ **Gestão de Opções de Voto** – adicionar, editar ou remover opções  
+- 🕒 **Controle de Período de Votação**:
+  - Definição de data/hora de início  
+  - Definição de data/hora de encerramento  
+- 📈 **Acompanhamento dos Resultados**  
+
+---
+
+## 🔐 Segurança e Integridade
+- Autenticação de utilizadores
+- Controle de permissões (utilizador x administrador)
+- Validação automática do período de votação
+- Bloqueio de votos duplicados
+- Uso de variáveis de ambiente para dados sensíveis (`.env`)
+
+> ⚠️ Sistema indicado para **votações institucionais ou educacionais**, não substituindo eleições oficiais.
+
+---
+
+## 🧰 Tech Stack
+
+| Camada | Tecnologias |
+|------|-------------|
+| 🎨 Front-end | React.js, HTML5, CSS3, JavaScript |
+| ⚙️ Back-end | Django |
+| 🗄️ Banco de Dados | MySQL |
+| 🔧 Versionamento | Git & GitHub |
+
+---
+
+## 📂 Estado do Projeto
+🚧 **Em desenvolvimento**  
+Funcionalidades principais estão sendo implementadas e aprimoradas de forma incremental.
+
+---
+
+## 🤝 Contribuição
+Sugestões, correções e melhorias são bem-vindas!  
+Sinta-se à vontade para abrir uma *issue* ou enviar um *pull request*.
+
+---
+
+## 📄 Licença
+Este projeto está sob a licença **MIT**.
+
+---
+
+## 👤 Autor
+Desenvolvido por **Gabriel**  
+💻 Desenvolvedor de aplicações web focado em sistemas seguros e bem estruturados.
