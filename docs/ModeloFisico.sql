@@ -1,5 +1,4 @@
-DROP DATABASE IF EXISTS vota_aqui;
-CREATE DATABASE vota_aqui
+DROP DATABASE IF EXISTS vota_aqui
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
