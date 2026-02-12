@@ -15,7 +15,7 @@ class Usuario(Base,AbstractUser):
 
     username = None  # remove o username padrão
     email = models.EmailField(unique=True)
-
+    
     STATUS_CHOICES = [
         ('ativo', 'Ativo'),
         ('inativo', 'Inativo'),
