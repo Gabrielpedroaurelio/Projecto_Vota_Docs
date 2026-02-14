@@ -14,10 +14,10 @@ export default function Auth() {
         setSubmitting(true)
         setTimeout(() => {
             console.log(data);
-            
+
             setSubmitting(false)
         }, 2000);
-        
+
 
     }
     return (
@@ -25,11 +25,11 @@ export default function Auth() {
             <div className={styles.container}>
                 <div className={styles.background}>
                     <div className={styles.header}>
-                        <p>O que você acha?</p>
+                        <p>Construindo o Futuro Com a Sua Opnião</p>
                     </div>
                     <div className={styles.footer}>
-                        <h1>VotaAki <br />
-                            Aqui a sua opnião importa
+                        <h1><strong >VotaAki</strong> <br />
+                            AQUI A SUA OPNIÃO IMPORTA!
                         </h1>
                     </div>
                 </div>
@@ -44,12 +44,22 @@ export default function Auth() {
                         </div>
                         <div className={styles.controller}>
                             <label htmlFor="email">E-mail</label>
-                            <input type="email" id="email" {...register("email", { required: "Este Campo é Obrigatório" })} />
-                            {errors?.email && (<p>{errors.email?.message}</p>)}
+                            <input type="email" id="email" {...register("email", {
+                                required: "Este Campo é Obrigatório", pattern: {
+                                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                    message: "Endereço de email inválido"
+                                }
+                            })} />
+                            {errors?.email && (<p>{errors.email?.type==="pattern"?errors.email?.message:errors.email?.message}</p>)}
                         </div>
                         <div className={styles.controller}>
                             <label htmlFor="password">Palavra-Passe</label>
-                            <input type="password" id="password" {...register("password", { required: "Este Campo é Obrigatório" })} />
+                            <input type="password" id="password" {...register("password", {
+                                required: "Este Campo é Obrigatório", minLength: {
+                                    value: 6,
+                                    message: "A senha deve ter pelo menos 6 caracteres"
+                                }
+                            })} />
                             {errors?.password && (<p>{errors.password?.message}</p>)}
                         </div>
                         <div className={styles.controller}>
