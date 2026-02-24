@@ -1,11 +1,9 @@
-import Routers from './Routers/router'
-import './assets/style.global.css'
-function App() {
  
+import './assets/style.global.css'
+
+function App() {
   return (
-   <>
-   <Routers></Routers>
-   </>
+   
   )
 }
 

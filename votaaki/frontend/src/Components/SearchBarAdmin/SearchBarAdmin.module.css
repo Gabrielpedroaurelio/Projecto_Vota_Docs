@@ -1,0 +1,54 @@
+* {
+    box-sizing: border-box;
+}
+
+.CardSeachBar {
+    background-color: rgb(255, 255, 255);
+    margin-left: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 10px 5px 5px 5px;
+}
+
+.CardSeachBar>div {
+
+    border: 1px solid #858585;
+    display: flex;
+    align-items: center;
+    border-radius: 5px;
+    
+    overflow: hidden;
+}
+
+.CardSeachBar .SearchBar {
+    display: flex;
+    align-items: center;
+   max-width: 300px;
+    padding: 5px;
+
+}
+
+.CardSeachBar button {
+
+    padding: 8px;
+
+
+    cursor: pointer;
+    align-self: center;
+
+}
+
+.CardSeachBar .SearchBar svg {
+    color: #9f9f9f;
+}
+
+.SearchBar input {
+    color: #858585;
+    width: 100%;
+    font-size: 14px;
+    outline: none;
+    padding-left: 10px;
+
+
+}
