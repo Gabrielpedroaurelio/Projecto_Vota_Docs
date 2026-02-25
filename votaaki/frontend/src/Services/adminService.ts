@@ -26,6 +26,22 @@ export const adminService = {
     },
 
     /**
+     * Get voting report data by period
+     */
+    async getVotingReport(startDate?: string, endDate?: string, groupBy = 'day') {
+        const token = localStorage.getItem('token');
+        let url = `${API_URL}/results/report?group_by=${groupBy}`;
+        if (startDate) url += `&start_date=${startDate}`;
+        if (endDate) url += `&end_date=${endDate}`;
+        
+        const response = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Error loading voting report');
+        return response.json();
+    },
+
+    /**
      * Get all users with pagination
      */
     async getUsers(search = '', status = 'all') {
