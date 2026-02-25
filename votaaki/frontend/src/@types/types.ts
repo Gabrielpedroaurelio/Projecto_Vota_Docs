@@ -1,24 +1,28 @@
-interface UserLogin {
+export interface UserLogin {
     email?: string,
     password?: string,
 }
-interface UserRegister {
+export interface UserRegister {
     name?: string,
     email?: string,
     password?: string,
 }
-interface UserData {
-    id_user?:BigInteger,
-    name?:string,
-    email?:string,
-    path_thumb?:string,
-    last_login?:string,
-    status?:string,
-    user_type?:string,
-    create_at?:string,
-    update_at?:string,
+export interface UserData {
+    id_user?: number;
+    name?: string;
+    email?: string;
+    path_thumb?: string;
+    last_login?: string;
+    status?: string;
+    user_type?: string;
+    create_at?: string;
+    update_at?: string;
 }
-interface UserEditProfile { }
+
+export interface AuthResponse {
+    token: string;
+    user: UserData;
+}
 
 export interface PollOption {
     id_opcao_voto: number;
