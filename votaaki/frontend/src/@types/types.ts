@@ -22,6 +22,7 @@ interface UserEditProfile { }
 
 export interface PollOption {
     id_opcao_voto: number;
+    id_enquete_opcao_voto?: number; // Bridge ID from Enquete_Opcao_Voto
     designacao: string;
     descricao?: string;
     total_votos?: number;

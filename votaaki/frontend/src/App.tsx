@@ -1,12 +1,9 @@
- 
 import './assets/style.global.css'
-import Main from './Pages/Public/Main/Main'
+import Routers from './Routers/Router'
 
 function App() {
   return (
-   <>
-   <Main></Main>
-   </>
+    <Routers />
   );
 }
 
