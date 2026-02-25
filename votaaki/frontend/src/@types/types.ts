@@ -7,21 +7,21 @@ export interface UserRegister {
     email?: string,
     password?: string,
 }
-export interface UserData {
-    id_user?: number;
-    name?: string;
-    email?: string;
+export interface User {
+    id_user: number;
+    name: string;
+    email: string;
     path_thumb?: string;
-    last_login?: string;
-    status?: 'active' | 'inactive' | 'banned';
-    user_type?: 'admin' | 'user';
-    created_at?: string;
+    last_login: string | null;
+    status: 'active' | 'inactive' | 'banned';
+    user_type: 'admin' | 'user';
+    created_at: string;
     updated_at?: string;
 }
 
 export interface AuthResponse {
     token: string;
-    user: UserData;
+    user: User;
 }
 
 export interface PollOption {

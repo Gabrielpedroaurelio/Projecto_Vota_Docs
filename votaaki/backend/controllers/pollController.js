@@ -37,30 +37,80 @@ export const getPollStats = async (req, res) => {
  */
 export const updatePoll = async (req, res) => {
   const { id } = req.params;
-  const { title, description, start_date, end_date, status } = req.body;
+  const { title, description, start_date, end_date, status, options } = req.body;
   const id_user = req.user.id;
   
+  const connection = await db.getConnection();
   try {
-    // Get old data for logging
-    const [oldData] = await db.execute('SELECT * FROM Poll WHERE id_poll = ?', [id]);
+    await connection.beginTransaction();
+
+    // 1. Check if poll exists
+    const [oldData] = await connection.execute('SELECT * FROM Poll WHERE id_poll = ?', [id]);
     if (oldData.length === 0) {
+      await connection.rollback();
       return res.status(404).json({ message: 'Poll not found.' });
     }
 
-    const [result] = await db.execute(
+    // 2. Update Main Poll
+    await connection.execute(
       'UPDATE Poll SET title = ?, description = ?, start_date = ?, end_date = ?, status = ? WHERE id_poll = ?',
       [title, description, start_date, end_date, status || 'active', id]
     );
+
+    // 3. Sync Options (if provided)
+    if (options && options.length >= 2) {
+      // Get current links
+      const [currentLinks] = await connection.execute('SELECT id_option FROM Poll_VoteOption WHERE id_poll = ?', [id]);
+      const currentOptionIds = currentLinks.map(l => l.id_option);
+      
+      const newOptionIds = [];
+
+      for (const opt of options) {
+        let optId = opt.id_option;
+        
+        if (!optId) {
+          // Create new option
+          const [optResult] = await connection.execute(
+            'INSERT INTO VoteOption (designation, description) VALUES (?, ?)',
+            [opt.designation, opt.description || '']
+          );
+          optId = optResult.insertId;
+        }
+        newOptionIds.push(optId);
+
+        // Link if not already linked
+        if (!currentOptionIds.includes(optId)) {
+          await connection.execute(
+            'INSERT INTO Poll_VoteOption (id_poll, id_option) VALUES (?, ?)',
+            [id, optId]
+          );
+        }
+      }
+
+      // Unlink options that are no longer present
+      const optionsToRemove = currentOptionIds.filter(id_opt => !newOptionIds.includes(id_opt));
+      if (optionsToRemove.length > 0) {
+        await connection.execute(
+          `DELETE FROM Poll_VoteOption WHERE id_poll = ? AND id_option IN (${optionsToRemove.join(',')})`,
+          [id]
+        );
+      }
+    }
     
     // Log Activity
-    await logActivity(id_user, 'Poll', id, 'Update', oldData[0], { title, description, start_date, end_date, status });
+    await logActivity(id_user, 'Poll', id, 'Update', oldData[0], { title, description, start_date, end_date, status, options_count: options?.length });
 
-    res.json({ message: 'Poll updated successfully!' });
+    await connection.commit();
+    res.json({ message: 'Poll synchronized successfully!' });
   } catch (error) {
+    await connection.rollback();
     console.error('Error updating poll:', error);
     res.status(500).json({ message: 'Error updating poll.' });
+  } finally {
+    connection.release();
   }
 };
+
 
 /**
  * Delete Poll (Admin Access)
@@ -121,13 +171,18 @@ export const createPoll = async (req, res) => {
     );
     const id_poll = pollResult.insertId;
 
-    // 2. Create Options and Link to Poll
+    // 2. Create Options (if new) and Link to Poll
     for (const opt of options) {
-      const [optResult] = await connection.execute(
-        'INSERT INTO VoteOption (designation, description) VALUES (?, ?)',
-        [opt.designation, opt.description || '']
-      );
-      const id_option = optResult.insertId;
+      let id_option = opt.id_option;
+
+      // If id_option is not provided, it's a new option
+      if (!id_option) {
+        const [optResult] = await connection.execute(
+          'INSERT INTO VoteOption (designation, description) VALUES (?, ?)',
+          [opt.designation, opt.description || '']
+        );
+        id_option = optResult.insertId;
+      }
 
       await connection.execute(
         'INSERT INTO Poll_VoteOption (id_poll, id_option) VALUES (?, ?)',

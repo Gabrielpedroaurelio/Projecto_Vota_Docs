@@ -13,15 +13,7 @@ import { adminService } from '../../../Services/adminService';
 import Loading from '../../../Components/Loading/Loading';
 import styles from './Users.module.css';
 
-interface User {
-    id_user: number;
-    name: string;
-    email: string;
-    user_type: 'admin' | 'user';
-    status: 'active' | 'inactive' | 'banned';
-    created_at: string;
-    last_login: string | null;
-}
+import type { User } from '../../../@types/types';
 
 export default function Users() {
     const [users, setUsers] = useState<User[]>([]);

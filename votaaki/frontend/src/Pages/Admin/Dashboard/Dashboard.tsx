@@ -44,8 +44,8 @@ interface DashboardData {
     }>;
     recentActivity: Array<{
         id_log: number;
-        entity_name: string;
-        action_type: string;
+        table_name: string;
+        action: string;
         user_name: string;
         created_at: string;
     }>;
@@ -99,7 +99,8 @@ export default function Dashboard() {
 
     const stats = data?.stats;
 
-    const getActionIcon = (type: string) => {
+    const getActionIcon = (type?: string) => {
+        if (!type) return <HiOutlineBolt />;
         switch (type.toLowerCase()) {
             case 'insert': return <HiOutlinePlusCircle style={{ color: '#10b981' }} />;
             case 'update': return <HiOutlinePencilSquare style={{ color: '#f59e0b' }} />;
@@ -246,16 +247,16 @@ export default function Dashboard() {
                     </div>
                     <div className={styles.activityList}>
                         {data?.recentActivity.map((log: unknown) => {
-                            const typedLog = log as { id_log: number; action_type: string; user_name: string; entity_name: string; created_at: string };
+                            const typedLog = log as { id_log: number; action: string; user_name: string; table_name: string; created_at: string };
                             return (
                                 <div key={typedLog.id_log} className={styles.activityItem}>
                                     <div className={styles.actionBadge}>
-                                        {getActionIcon(typedLog.action_type)}
+                                        {getActionIcon(typedLog.action)}
                                     </div>
                                     <div className={styles.activityContent}>
                                         <div className={styles.activityUser}>{typedLog.user_name}</div>
                                         <div className={styles.activityText}>
-                                            {typedLog.action_type}d a {typedLog.entity_name}
+                                            {typedLog.action}d a {typedLog.table_name}
                                         </div>
                                     </div>
                                     <div className={styles.activityTime}>{formatTime(typedLog.created_at)}</div>

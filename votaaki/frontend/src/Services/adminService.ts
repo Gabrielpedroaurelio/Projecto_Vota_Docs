@@ -113,5 +113,131 @@ export const adminService = {
             throw new Error(result.error || result.message || 'Erro ao criar utilizador');
         }
         return result;
+    },
+
+    /**
+     * Get all polls
+     */
+    async getPolls() {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/polls`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Erro ao carregar enquetes');
+        return data;
+    },
+
+    /**
+     * Create a new poll with options
+     */
+    async createPoll(data: unknown) {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/polls`, {
+            method: 'POST',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Erro ao criar enquete');
+        return result;
+    },
+
+    /**
+     * Update existing poll
+     */
+    async updatePoll(id: number, data: unknown) {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/polls/${id}`, {
+            method: 'PUT',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Erro ao atualizar enquete');
+        return result;
+    },
+
+    /**
+     * Delete poll
+     */
+    async deletePoll(id: number) {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/polls/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Erro ao excluir enquete');
+        return result;
+    },
+
+    /**
+     * Get all vote options
+     */
+    async getOptions() {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/options`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Erro ao carregar opções');
+        return data;
+    },
+
+    /**
+     * Create individual option
+     */
+    async createOption(data: unknown) {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/options`, {
+            method: 'POST',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Erro ao criar opção');
+        return result;
+    },
+
+    /**
+     * Update existing option
+     */
+    async updateOption(id: number, data: unknown) {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/options/${id}`, {
+            method: 'PUT',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Erro ao atualizar opção');
+        return result;
+    },
+
+    /**
+     * Delete individual option
+     */
+    async deleteOption(id: number) {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/options/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Erro ao excluir opção');
+        return result;
     }
 };

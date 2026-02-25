@@ -5,6 +5,8 @@ import Auth from "../Pages/Public/Auth/Auth";
 import Dashboard from "../Pages/Admin/Dashboard/Dashboard";
 import Users from "../Pages/Admin/Users/Users";
 import AdminLayout from "../Components/AdminLayout/AdminLayout";
+import Polls from "../Pages/Admin/Polls/Polls";
+import OptionVote from "../Pages/Admin/OptionVote/OptionVote";
 
 export default function Routers() {
     return (
@@ -19,8 +21,8 @@ export default function Routers() {
                 <Route element={<AdminLayout />}>
                     <Route path="/admin/dashboard" element={<Dashboard />} />
                     <Route path="/admin/users" element={<Users />} />
-                    <Route path="/admin/polls" element={<div>Polls Management</div>} />
-                    <Route path="/admin/options" element={<div>Options Management</div>} />
+                    <Route path="/admin/polls" element={<Polls />} />
+                    <Route path="/admin/options" element={<OptionVote />} />
                     <Route path="/admin/reports" element={<div>Reports Management</div>} />
                     <Route path="/profile" element={<div>Profile User</div>} />
                 </Route>
