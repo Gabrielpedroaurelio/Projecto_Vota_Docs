@@ -1,0 +1,33 @@
+.header {
+    background-color: var(--slate-50);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px;
+    box-shadow: 0px 0px 10px var(--slate-400);
+    position: sticky;
+    top: 0px;
+    
+}
+
+.header .logo {
+    height: 50px;
+    width: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.header .logo  img{}
+
+.header .navbarmenu a {
+    padding: 4px 10px;
+    color: var(--slate-800);
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid var(--slate-700);
+    border-radius: 5px;
+}
+.header .navbarmenu a:hover{
+    box-shadow:var(--focus-ring);
+    
+}
