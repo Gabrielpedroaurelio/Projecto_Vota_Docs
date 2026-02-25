@@ -1,42 +1,38 @@
-/**
- * Rotas de Resultados e Estatísticas - VotaAki
- * 
- * Rotas para dashboard, relatórios e métricas do sistema.
- */
 
 import express from 'express';
-import { authMiddleware } from '../middleware/authMiddleware.js';
-import { roleMiddleware } from '../middleware/roleMiddleware.js';
-import {
-  getDashboardStats,
-  getPollResults,
-  getVotingReport,
-  getUserParticipationStats,
-  getPollRanking,
-  getEngagementMetrics
-} from '../controllers/resultController.js';
+import * as resultController from '../controllers/resultController.js';
+import { authenticateToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Aplicar middleware de autenticação em todas as rotas
-router.use(authMiddleware);
+/**
+ * @route GET /api/results/dashboard
+ * @desc  Get global system KPIs (Admin Only)
+ */
+router.get('/dashboard', authenticateToken, resultController.getDashboardStats);
 
-// Estatísticas do dashboard (Admin only)
-router.get('/dashboard', roleMiddleware('admin'), getDashboardStats);
+/**
+ * @route GET /api/results/engagement
+ * @desc  Get deep engagement metrics (Admin Only)
+ */
+router.get('/engagement', authenticateToken, resultController.getEngagementMetrics);
 
-// Resultados de uma enquete específica
-router.get('/poll/:id', getPollResults);
+/**
+ * @route GET /api/results/poll/:id
+ * @desc  Get detailed vote results for a poll
+ */
+router.get('/poll/:id', resultController.getPollResults);
 
-// Relatório de votação por período (Admin only)
-router.get('/voting-report', roleMiddleware('admin'), getVotingReport);
+/**
+ * @route GET /api/results/report
+ * @desc  Generate a voting activity report
+ */
+router.get('/report', authenticateToken, resultController.getVotingReport);
 
-// Estatísticas de participação do usuário (Admin ou próprio usuário)
-router.get('/user/:id', getUserParticipationStats);
-
-// Ranking de enquetes (público)
-router.get('/poll-ranking', getPollRanking);
-
-// Métricas de engajamento (Admin only)
-router.get('/engagement', roleMiddleware('admin'), getEngagementMetrics);
+/**
+ * @route GET /api/results/user/:id
+ * @desc  Get participation history for a user
+ */
+router.get('/user/:id', authenticateToken, resultController.getUserParticipationStats);
 
 export default router;

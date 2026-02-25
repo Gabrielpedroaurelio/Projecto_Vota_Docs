@@ -1,24 +1,19 @@
-/**
- * Rotas de Votação - VotaAki
- * 
- * Define os endpoints para submissão de votos e consulta de estatísticas.
- */
 
 import express from 'express';
 import * as voteController from '../controllers/voteController.js';
-import { authMiddleware } from '../middleware/authMiddleware.js';
+import { authenticateToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 /**
  * @route POST /api/votes
- * @desc  Regista o voto do utilizador (Acesso Protegido: Utilizador Autenticado).
+ * @desc  Submit a vote. Requires authenticated user.
  */
-router.post('/', authMiddleware, voteController.vote);
+router.post('/', authenticateToken, voteController.vote);
 
 /**
  * @route GET /api/votes/results/:id
- * @desc  Obtém as estatísticas de votação em tempo real.
+ * @desc  Get simple vote count for a poll
  */
 router.get('/results/:id', voteController.getResults);
 

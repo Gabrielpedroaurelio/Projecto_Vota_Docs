@@ -2,8 +2,10 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Importação das rotas utilizando a sintaxe ES Modules
+// Route Imports
 import authRoutes from './routes/auth.js';
 import pollRoutes from './routes/polls.js';
 import voteRoutes from './routes/votes.js';
@@ -11,30 +13,25 @@ import userRoutes from './routes/users.js';
 import resultRoutes from './routes/results.js';
 import optionRoutes from './routes/options.js';
 
-// Configuração das variáveis de ambiente (.env)
-import path from 'path';
-import { fileURLToPath } from 'url';
+// Environment Configuration
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 dotenv.config({ path: path.join(__dirname, '.env') });
 
-// Garantir que o JWT_SECRET existe
+// Security Check: JWT_SECRET
 if (!process.env.JWT_SECRET) {
   process.env.JWT_SECRET = 'votaaki_emergency_secret_key_2024';
-  console.warn('AVISO: JWT_SECRET não encontrado no .env. Usando chave de emergência.');
+  console.warn('WARNING: JWT_SECRET not found in .env. Using EMERGENCY secret key.');
 }
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware para permitir requisições de origens diferentes (CORS)
+// Global Middleware
 app.use(cors());
-
-// Middleware para processar corpos de requisições em formato JSON
 app.use(express.json());
 
-// Definição das rotas da API
+// API Route Definitions
 app.use('/api/auth', authRoutes);
 app.use('/api/polls', pollRoutes);
 app.use('/api/votes', voteRoutes);
@@ -42,12 +39,12 @@ app.use('/api/users', userRoutes);
 app.use('/api/results', resultRoutes);
 app.use('/api/options', optionRoutes);
 
-// Rota base para verificação de status do servidor
+// Health Check
 app.get('/', (req, res) => {
-  res.send('Servidor Online');
+  res.send('VotaAki API - Server Online');
 });
 
-// Inicialização do servidor na porta especificada
+// Server Initialization
 app.listen(PORT, () => {
-  console.log(`Servidor Rodando: http://localhost:${PORT}`);
+  console.log(`Server Running at: http://localhost:${PORT}`);
 });

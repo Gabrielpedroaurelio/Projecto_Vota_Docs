@@ -1,153 +1,160 @@
 /**
- * Controller de Opções de Voto - VotaAki
+ * Vote Options Controller - VotaAki
  * 
- * Responsável pela gestão individual das opções de voto associadas às enquetes.
+ * Responsible for individual management of vote options associated with polls.
  */
 
 import db from '../db/config.js';
+import { logActivity } from '../utils/logHelper.js';
 
 /**
- * Listar todas as opções de voto de todas as enquetes
+ * List all vote options from all polls
  */
 export const getOptions = async (req, res) => {
   try {
     const [options] = await db.execute(`
-      SELECT ov.*, e.titulo as titulo_enquete, eov.id_enquete
-      FROM OpcaoVoto ov 
-      JOIN Enquete_Opcao_Voto eov ON ov.id_opcao_voto = eov.id_opcao_voto
-      JOIN Enquete e ON eov.id_enquete = e.id_enquete
-      ORDER BY ov.criado_em DESC
+      SELECT vo.*, p.title as poll_title, pvo.id_poll
+      FROM VoteOption vo 
+      JOIN Poll_VoteOption pvo ON vo.id_option = pvo.id_option
+      JOIN Poll p ON pvo.id_poll = p.id_poll
+      ORDER BY vo.id_option DESC
     `);
 
     res.json(options);
   } catch (error) {
-    console.error('Erro ao listar todas as opções:', error);
-    res.status(500).json({ message: 'Erro ao carregar opções de voto.' });
+    console.error('Error listing all options:', error);
+    res.status(500).json({ message: 'Error loading vote options.' });
   }
 };
 
 /**
- * Listar todas as opções de uma enquete específica
+ * List all options for a specific poll
  */
 export const getOptionsByPoll = async (req, res) => {
   const { id } = req.params;
   try {
     const [options] = await db.execute(`
-      SELECT ov.*, e.titulo as titulo_enquete, eov.id_enquete
-      FROM OpcaoVoto ov 
-      JOIN Enquete_Opcao_Voto eov ON ov.id_opcao_voto = eov.id_opcao_voto 
-      JOIN Enquete e ON eov.id_enquete = e.id_enquete
-      WHERE eov.id_enquete = ?
+      SELECT vo.*, p.title as poll_title, pvo.id_poll
+      FROM VoteOption vo 
+      JOIN Poll_VoteOption pvo ON vo.id_option = pvo.id_option 
+      JOIN Poll p ON pvo.id_poll = p.id_poll
+      WHERE pvo.id_poll = ?
     `, [id]);
 
     res.json(options);
   } catch (error) {
-    console.error('Erro ao listar opções da enquete:', error);
-    res.status(500).json({ message: 'Erro ao carregar opções da enquete.' });
+    console.error('Error listing poll options:', error);
+    res.status(500).json({ message: 'Error loading poll options.' });
   }
 };
 
 /**
- * Criar uma nova opção e vincular a uma enquete
+ * Create a new option and link it to a poll
  */
 export const createOption = async (req, res) => {
-  const { designacao, descricao, id_enquete } = req.body;
+  const { designation, description, id_poll } = req.body;
+  const id_user = req.user.id;
 
-  if (!designacao || !id_enquete) {
-    return res.status(400).json({ message: 'Designação e ID da enquete são obrigatórios.' });
+  if (!designation || !id_poll) {
+    return res.status(400).json({ message: 'Designation and poll ID are required.' });
   }
 
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
 
-    // 1. Inserir a opção
+    // 1. Insert the option
     const [optResult] = await connection.execute(
-      'INSERT INTO OpcaoVoto (designacao, descricao) VALUES (?, ?)',
-      [designacao, descricao || '']
+      'INSERT INTO VoteOption (designation, description) VALUES (?, ?)',
+      [designation, description || '']
     );
-    const id_opcao_voto = optResult.insertId;
+    const id_option = optResult.insertId;
 
-    // 2. Criar o vínculo com a enquete
+    // 2. Link to poll via bridge
     await connection.execute(
-      'INSERT INTO Enquete_Opcao_Voto (id_enquete, id_opcao_voto) VALUES (?, ?)',
-      [id_enquete, id_opcao_voto]
+      'INSERT INTO Poll_VoteOption (id_poll, id_option) VALUES (?, ?)',
+      [id_poll, id_option]
     );
+
+    // 3. Log Activity
+    await logActivity(id_user, 'VoteOption', id_option, 'Insert', null, { designation, description, id_poll });
 
     await connection.commit();
-    res.status(201).json({ message: 'Opção de voto criada com sucesso!', id_opcao_voto });
+    res.status(201).json({ message: 'Vote option created successfully!', id_option });
   } catch (error) {
     await connection.rollback();
-    console.error('Erro ao criar opção de voto:', error);
-    res.status(500).json({ message: 'Erro ao criar opção de voto.' });
+    console.error('Error creating vote option:', error);
+    res.status(500).json({ message: 'Error creating vote option.' });
   } finally {
     connection.release();
   }
 };
 
 /**
- * Atualizar uma opção existente
+ * Update an existing option
  */
 export const updateOption = async (req, res) => {
   const { id } = req.params;
-  const { designacao, descricao } = req.body;
+  const { designation, description } = req.body;
+  const id_user = req.user.id;
 
   try {
-    const [result] = await db.execute(
-      'UPDATE OpcaoVoto SET designacao = ?, descricao = ? WHERE id_opcao_voto = ?',
-      [designacao, descricao || '', id]
-    );
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Opção de voto não encontrada.' });
+    const [oldData] = await db.execute('SELECT * FROM VoteOption WHERE id_option = ?', [id]);
+    if (oldData.length === 0) {
+      return res.status(404).json({ message: 'Vote option not found.' });
     }
 
-    res.json({ message: 'Opção de voto atualizada com sucesso!' });
+    const [result] = await db.execute(
+      'UPDATE VoteOption SET designation = ?, description = ? WHERE id_option = ?',
+      [designation, description || '', id]
+    );
+
+    // Log Activity
+    await logActivity(id_user, 'VoteOption', id, 'Update', oldData[0], { designation, description });
+
+    res.json({ message: 'Vote option updated successfully!' });
   } catch (error) {
-    console.error('Erro ao atualizar opção de voto:', error);
-    res.status(500).json({ message: 'Erro ao atualizar opção de voto.' });
+    console.error('Error updating vote option:', error);
+    res.status(500).json({ message: 'Error updating vote option.' });
   }
 };
 
 /**
- * Excluir uma opção de voto
+ * Delete a vote option
  */
 export const deleteOption = async (req, res) => {
   const { id } = req.params;
+  const id_user = req.user.id;
 
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
 
-    // 1. Remover vínculos
-    await connection.execute(
-      'DELETE FROM Enquete_Opcao_Voto WHERE id_opcao_voto = ?',
-      [id]
-    );
-
-    // 2. Remover votos associados (opcional, dependendo da regra de negócio - aqui vamos remover para evitar órfãos)
-    await connection.execute(
-      'DELETE FROM Voto WHERE id_enquete_opcao_voto IN (SELECT id_enquete_opcao_voto FROM Enquete_Opcao_Voto WHERE id_opcao_voto = ?)',
-      [id]
-    );
-
-    // 3. Remover a opção
-    const [result] = await connection.execute(
-      'DELETE FROM OpcaoVoto WHERE id_opcao_voto = ?',
-      [id]
-    );
-
-    if (result.affectedRows === 0) {
-      await connection.rollback();
-      return res.status(404).json({ message: 'Opção de voto não encontrada.' });
+    const [oldData] = await connection.execute('SELECT * FROM VoteOption WHERE id_option = ?', [id]);
+    if (oldData.length === 0) {
+        return res.status(404).json({ message: 'Vote option not found.' });
     }
 
+    // Cascade deletion should handle Poll_VoteOption and Vote, 
+    // but we check ModeloFisico.sql definition. 
+    // In our ModeloFisico.sql, Poll_VoteOption has ON DELETE CASCADE on id_option.
+    // And Vote has ON DELETE CASCADE on id_poll_option.
+    // So deleting a VoteOption should clear its bridge and votes.
+
+    const [result] = await connection.execute(
+      'DELETE FROM VoteOption WHERE id_option = ?',
+      [id]
+    );
+
+    // Log Activity
+    await logActivity(id_user, 'VoteOption', id, 'Delete', oldData[0], null);
+
     await connection.commit();
-    res.json({ message: 'Opção de voto excluída com sucesso!' });
+    res.json({ message: 'Vote option deleted successfully!' });
   } catch (error) {
     await connection.rollback();
-    console.error('Erro ao excluir opção de voto:', error);
-    res.status(500).json({ message: 'Erro ao excluir opção de voto.' });
+    console.error('Error deleting vote option:', error);
+    res.status(500).json({ message: 'Error deleting vote option.' });
   } finally {
     connection.release();
   }
