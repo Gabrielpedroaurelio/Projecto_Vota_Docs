@@ -357,3 +357,102 @@ export const getUserStats = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+/**
+ * Get logged-in user profile
+ */
+export const getProfile = async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const [users] = await db.execute(
+      'SELECT id_user, name, email, user_type, status, path_thumb, created_at FROM User WHERE id_user = ?',
+      [userId]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(users[0]);
+  } catch (error) {
+    console.error('Error getting profile:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+/**
+ * Update logged-in user profile
+ */
+export const updateProfile = async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const { name, email, currentPassword, newPassword } = req.body;
+    let path_thumb = req.file ? `/uploads/profiles/${req.file.filename}` : undefined;
+
+    // Get current user data
+    const [users] = await db.execute('SELECT * FROM User WHERE id_user = ?', [userId]);
+    const user = users[0];
+
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+
+    let updateFields = [];
+    let updateValues = [];
+
+    if (name) {
+      updateFields.push('name = ?');
+      updateValues.push(name);
+    }
+
+    if (email && email !== user.email) {
+      const [emailCheck] = await db.execute(
+        'SELECT id_user FROM User WHERE email = ? AND id_user != ?',
+        [email, userId]
+      );
+      if (emailCheck.length > 0) {
+        return res.status(400).json({ message: 'Email already in use' });
+      }
+      updateFields.push('email = ?');
+      updateValues.push(email);
+    }
+
+    if (path_thumb) {
+      updateFields.push('path_thumb = ?');
+      updateValues.push(path_thumb);
+    }
+
+    // Password change logic
+    if (newPassword) {
+      if (!currentPassword) {
+          return res.status(400).json({ message: 'Current password is required to change password' });
+      }
+      const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
+      if (!isMatch) {
+          return res.status(400).json({ message: 'Current password incorrect' });
+      }
+      const salt = await bcrypt.genSalt(10);
+      const password_hash = await bcrypt.hash(newPassword, salt);
+      updateFields.push('password_hash = ?');
+      updateValues.push(password_hash);
+    }
+
+    if (updateFields.length === 0) {
+      return res.status(400).json({ message: 'No fields to update' });
+    }
+
+    updateValues.push(userId);
+    await db.execute(
+      `UPDATE User SET ${updateFields.join(', ')} WHERE id_user = ?`,
+      updateValues
+    );
+
+    res.json({ 
+        message: 'Profile updated successfully',
+        image: path_thumb // Return new image path to update frontend state
+    });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};

@@ -2,10 +2,15 @@
 import express from 'express';
 import * as userController from '../controllers/userController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
+import { uploadProfileImage } from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
 
-// All user routes require authentication (Admin)
+// Publicly available profile (if logged in)
+router.get('/me/profile', authenticateToken, userController.getProfile);
+router.put('/me/profile', authenticateToken, uploadProfileImage.single('image'), userController.updateProfile);
+
+// All other user routes require authentication (Admin)
 router.use(authenticateToken);
 
 /**
