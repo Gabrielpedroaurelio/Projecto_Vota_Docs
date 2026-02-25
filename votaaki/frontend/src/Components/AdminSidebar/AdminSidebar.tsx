@@ -7,7 +7,8 @@ import {
     HiOutlineCheckCircle,
     HiOutlineDocumentChartBar,
     HiOutlineUserCircle,
-    HiOutlineArrowLeftOnRectangle
+    HiOutlineArrowLeftOnRectangle,
+    HiOutlineClock
 } from 'react-icons/hi2';
 import styles from './AdminSidebar.module.css';
 
@@ -20,6 +21,7 @@ export default function AdminSidebar() {
         { path: '/admin/polls', label: 'Enquetes', icon: <HiOutlineListBullet /> },
         { path: '/admin/options', label: 'Opções', icon: <HiOutlineCheckCircle /> },
         { path: '/admin/reports', label: 'Relatórios', icon: <HiOutlineDocumentChartBar /> },
+        { path: '/admin/history', label: 'Histórico', icon: <HiOutlineClock /> },
         { path: '/profile', label: 'Perfil', icon: <HiOutlineUserCircle /> },
     ];
 

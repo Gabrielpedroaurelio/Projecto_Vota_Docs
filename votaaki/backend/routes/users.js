@@ -55,4 +55,8 @@ router.patch('/:id/password', userController.updateUserPassword);
  */
 router.delete('/:id', userController.deleteUser);
 
+// Administrative Log Routes
+router.get('/admin/logs/login', userController.getLoginLogs);
+router.get('/admin/logs/activity', userController.getActivityLogs);
+
 export default router;

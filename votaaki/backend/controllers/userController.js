@@ -456,3 +456,84 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+/**
+ * Get all login logs (Admin Access)
+ */
+export const getLoginLogs = async (req, res) => {
+  try {
+    const { userId, startDate, endDate } = req.query;
+    let query = `
+      SELECT ll.*, u.name as user_name, u.email as user_email 
+      FROM LoginLog ll 
+      JOIN User u ON ll.id_user = u.id_user 
+      WHERE 1=1
+    `;
+    const params = [];
+
+    if (userId) {
+      query += ' AND ll.id_user = ?';
+      params.push(userId);
+    }
+    if (startDate) {
+      query += ' AND ll.login_time >= ?';
+      params.push(startDate);
+    }
+    if (endDate) {
+      query += ' AND ll.login_time <= ?';
+      params.push(endDate);
+    }
+
+    query += ' ORDER BY ll.login_time DESC LIMIT 500';
+
+    const [logs] = await db.execute(query, params);
+    res.json(logs);
+  } catch (error) {
+    console.error('Error fetching login logs:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+/**
+ * Get all activity logs (Admin Access)
+ */
+export const getActivityLogs = async (req, res) => {
+  try {
+    const { userId, tableName, action, startDate, endDate } = req.query;
+    let query = `
+      SELECT al.*, u.name as user_name 
+      FROM ActivityLog al 
+      JOIN User u ON al.id_user = u.id_user 
+      WHERE 1=1
+    `;
+    const params = [];
+
+    if (userId) {
+      query += ' AND al.id_user = ?';
+      params.push(userId);
+    }
+    if (tableName) {
+      query += ' AND al.table_name = ?';
+      params.push(tableName);
+    }
+    if (action) {
+      query += ' AND al.action = ?';
+      params.push(action);
+    }
+    if (startDate) {
+      query += ' AND al.created_at >= ?';
+      params.push(startDate);
+    }
+    if (endDate) {
+      query += ' AND al.created_at <= ?';
+      params.push(endDate);
+    }
+
+    query += ' ORDER BY al.created_at DESC LIMIT 500';
+
+    const [logs] = await db.execute(query, params);
+    res.json(logs);
+  } catch (error) {
+    console.error('Error fetching activity logs:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};

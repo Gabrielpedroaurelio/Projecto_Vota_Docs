@@ -9,6 +9,7 @@ import Polls from "../Pages/Admin/Polls/Polls";
 import OptionVote from "../Pages/Admin/OptionVote/OptionVote";
 import Reports from "../Pages/Admin/Reports/Reports";
 import Profile from "../Pages/Profile/Profile";
+import History from "../Pages/Admin/History/History";
 
 export default function Routers() {
     return (
@@ -26,6 +27,7 @@ export default function Routers() {
                     <Route path="/admin/polls" element={<Polls />} />
                     <Route path="/admin/options" element={<OptionVote />} />
                     <Route path="/admin/reports" element={<Reports />} />
+                    <Route path="/admin/history" element={<History />} />
                     <Route path="/profile" element={<Profile />} />
                 </Route>
             </Routes>

@@ -255,5 +255,26 @@ export const adminService = {
         const result = await response.json();
         if (!response.ok) throw new Error(result.message || 'Erro ao excluir opção');
         return result;
+    },
+
+    /**
+     * History & Logs
+     */
+    async getLoginLogs(filters: any = {}): Promise<any[]> {
+        const queryParams = new URLSearchParams(filters).toString();
+        const response = await fetch(`${API_URL}/users/admin/logs/login?${queryParams}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (!response.ok) throw new Error('Erro ao carregar logs de login');
+        return response.json();
+    },
+
+    async getActivityLogs(filters: any = {}): Promise<any[]> {
+        const queryParams = new URLSearchParams(filters).toString();
+        const response = await fetch(`${API_URL}/users/admin/logs/activity?${queryParams}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (!response.ok) throw new Error('Erro ao carregar logs de atividade');
+        return response.json();
     }
 };
