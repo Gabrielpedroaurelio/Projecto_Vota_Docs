@@ -40,28 +40,38 @@
 }
 
 .voteCountBadge {
-    font-size: 0.875rem;
-    color: var(--slate-400);
+    font-size: 0.813rem;
+    color: var(--color-primary);
+    background: var(--color-accent-light);
+    padding: 4px 10px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     gap: 6px;
+    font-weight: 600;
+    border: 1px solid var(--color-border-light);
+}
+
+.voteCountBadge svg {
+    font-size: 1rem;
 }
 
 .title {
-    font-size: 1.125rem;
-    font-weight: 500;
-    color: var(--slate-900);
-    margin-bottom: 0.25rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 0.5rem;
 }
 
 .description {
     font-size: 0.875rem;
-    color: var(--slate-500);
-    line-height: 1.5;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    margin-bottom: 1rem;
 }
 
 .metaContainer {
@@ -70,38 +80,69 @@
     align-items: center;
     gap: 8px;
     font-size: 0.8125rem;
-    color: var(--slate-400);
+    color: var(--color-text-muted);
 }
 
 .cardFooter {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 1rem;
+    border-top: 1px solid var(--color-border-light);
+    padding-top: 1.25rem;
+}
+
+.primaryButton, .loginButton, .secondaryButton {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .primaryButton {
-    background: var(--indigo-600);
+    background: var(--color-primary);
     color: white;
-    padding: 6px 20px;
-    border-radius: 9999px;
-    font-size: 0.875rem;
-    font-weight: 500;
     border: none;
-    cursor: pointer;
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
 }
 
 .primaryButton:hover {
-    background: var(--indigo-700);
+    background: var(--color-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+}
+
+.loginButton {
+    background: var(--color-bg-main);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border-light);
+}
+
+.loginButton:hover {
+    background: white;
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
 }
 
 .secondaryButton {
     background: transparent;
-    border: 1px solid var(--slate-200);
-    color: var(--slate-700);
-    padding: 6px 20px;
-    border-radius: 9999px;
-    font-size: 0.875rem;
-    font-weight: 500;
+    border: 1px solid var(--color-border-light);
+    color: var(--color-text-secondary);
+}
+
+.secondaryButton:hover {
+    background: var(--color-bg-main);
+    border-color: var(--color-text-muted);
+    color: var(--color-text-primary);
 }
 
 .votedStatus {
@@ -109,8 +150,11 @@
     align-items: center;
     gap: 4px;
     font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--indigo-600);
+    font-weight: 700;
+    color: var(--color-success);
+    background: rgba(16, 185, 129, 0.1);
+    padding: 4px 10px;
+    border-radius: 20px;
 }
 
 .pulse { animation: pulse 2s infinite; }

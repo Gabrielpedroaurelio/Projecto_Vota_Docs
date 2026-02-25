@@ -4,9 +4,20 @@
     background-color: #f8fafc;
 }
 
+.publicLayout {
+    display: block;
+    min-height: 100vh;
+    background-color: var(--color-bg-main);
+}
+
 .content {
     flex: 1;
     margin-left: 260px; /* Width of the sidebar */
     min-height: 100vh;
+    overflow-y: auto;
+}
+
+.publicContent {
+    min-height: calc(100vh - 70px);
     overflow-y: auto;
 }

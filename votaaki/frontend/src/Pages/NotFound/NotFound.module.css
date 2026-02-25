@@ -12,87 +12,116 @@
 .container {
     position: relative;
     z-index: 1;
+    width: 100%;
+    max-width: 600px;
+    padding: 2rem;
 }
 
 .content {
     text-align: center;
-    max-width: 500px;
-    padding: 2rem;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 32px;
+    padding: 3rem 2rem;
+    box-shadow: var(--shadow-xl);
+    animation: fadeInScale 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .illustration {
     position: relative;
     margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .number {
     font-size: 8rem;
-    font-weight: bold;
-    color: var(--color-primary);
-    margin-bottom: 1rem;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    font-weight: 900;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--color-primary), #6366f1);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -5px;
+    margin-bottom: -1rem;
+    animation: floating 3s ease-in-out infinite;
 }
 
 .icon {
     font-size: 4rem;
-    margin-bottom: 1rem;
+    color: #f59e0b; /* Amber 500 */
+    margin-top: -1rem;
+    background: white;
+    padding: 10px;
+    border-radius: 50%;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 2s infinite;
 }
 
-.text h1 {
-    font-size: 2rem;
+.title {
+    font-size: 2.25rem;
     color: var(--color-text-primary);
     margin-bottom: 1rem;
-    font-weight: 600;
+    font-weight: 800;
+    letter-spacing: -0.5px;
 }
 
-.text p {
-    font-size: 1.1rem;
+.description {
+    font-size: 1.125rem;
     color: var(--color-text-secondary);
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
     line-height: 1.6;
 }
 
 .actions {
     display: flex;
-    gap: 1rem;
+    gap: 1.25rem;
     justify-content: center;
-    flex-wrap: wrap;
+}
+
+.primaryButton, .secondaryButton {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 12px 28px;
+    border-radius: 14px;
+    font-size: 0.938rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .primaryButton {
-    background-color: var(--color-accent);
+    background: var(--color-primary);
     color: white;
     border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
 }
 
 .primaryButton:hover {
-    background-color: var(--color-accent-dark);
+    background: var(--color-primary-dark);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(47, 143, 157, 0.3);
+    box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
 }
 
 .secondaryButton {
-    background-color: transparent;
-    color: var(--color-accent);
-    border: 2px solid var(--color-accent);
-    padding: 10px 22px;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    background: white;
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border-light);
+    box-shadow: var(--shadow-sm);
 }
 
 .secondaryButton:hover {
-    background-color: var(--color-accent);
-    color: white;
+    border-color: var(--color-primary);
+    color: var(--color-primary);
     transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
 }
 
 .background {
@@ -102,67 +131,82 @@
     width: 100%;
     height: 100%;
     z-index: -1;
-    opacity: 0.1;
+    overflow: hidden;
+}
+
+.circle1, .circle2, .circle3 {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.5;
 }
 
 .circle1 {
-    position: absolute;
-    top: 10%;
-    left: 10%;
-    width: 200px;
-    height: 200px;
-    border-radius: 50%;
-    background: var(--color-accent);
+    top: -10%;
+    left: -10%;
+    width: 40%;
+    height: 40%;
+    background: rgba(37, 99, 235, 0.2);
+    animation: moveCircle 20s infinite alternate;
 }
 
 .circle2 {
-    position: absolute;
-    top: 60%;
-    right: 10%;
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    background: var(--color-primary);
+    bottom: -10%;
+    right: -10%;
+    width: 30%;
+    height: 30%;
+    background: rgba(99, 102, 241, 0.2);
+    animation: moveCircle 15s infinite alternate-reverse;
 }
 
 .circle3 {
-    position: absolute;
-    bottom: 10%;
-    left: 30%;
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background: var(--color-accent-light);
+    top: 40%;
+    left: 50%;
+    width: 20%;
+    height: 20%;
+    background: rgba(139, 92, 246, 0.1);
+    animation: moveCircle 25s infinite alternate;
 }
 
-@media (max-width: 768px) {
+@keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes floating {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+    70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+}
+
+@keyframes moveCircle {
+    from { transform: translate(0, 0); }
+    to { transform: translate(100px, 50px); }
+}
+
+@media (max-width: 640px) {
     .content {
-        padding: 1rem;
+        padding: 2.5rem 1.5rem;
     }
     
     .number {
         font-size: 6rem;
     }
     
-    .icon {
-        font-size: 3rem;
-    }
-    
-    .text h1 {
-        font-size: 1.5rem;
-    }
-    
-    .text p {
-        font-size: 1rem;
+    .title {
+        font-size: 1.75rem;
     }
     
     .actions {
         flex-direction: column;
-        align-items: center;
     }
     
-    .primaryButton,
-    .secondaryButton {
-        width: 200px;
+    .primaryButton, .secondaryButton {
+        width: 100%;
     }
 }

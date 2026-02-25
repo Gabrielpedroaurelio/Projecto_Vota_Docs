@@ -10,6 +10,8 @@ import OptionVote from "../Pages/Admin/OptionVote/OptionVote";
 import Reports from "../Pages/Admin/Reports/Reports";
 import Profile from "../Pages/Profile/Profile";
 import History from "../Pages/Admin/History/History";
+import ProtectedRoute from "../Components/ProtectedRoute/ProtectedRoute";
+import NotFound from "../Pages/NotFound/NotFound";
 
 export default function Routers() {
     return (
@@ -20,16 +22,25 @@ export default function Routers() {
                 <Route path="/vote/:id" element={<PollVote />} />
                 <Route path="/auth" element={<Auth />} />
 
-                {/* Admin Routes - Sidebar Layout (Protection removed as requested) */}
-                <Route element={<AdminLayout />}>
-                    <Route path="/admin/dashboard" element={<Dashboard />} />
-                    <Route path="/admin/users" element={<Users />} />
-                    <Route path="/admin/polls" element={<Polls />} />
-                    <Route path="/admin/options" element={<OptionVote />} />
-                    <Route path="/admin/reports" element={<Reports />} />
-                    <Route path="/admin/history" element={<History />} />
-                    <Route path="/profile" element={<Profile />} />
+                {/* Secure Routes */}
+                <Route element={<ProtectedRoute />}>
+                    <Route element={<AdminLayout />}>
+                        <Route path="/profile" element={<Profile />} />
+                        
+                        {/* Admin Specific Routes */}
+                        <Route element={<ProtectedRoute adminOnly />}>
+                            <Route path="/admin/dashboard" element={<Dashboard />} />
+                            <Route path="/admin/users" element={<Users />} />
+                            <Route path="/admin/polls" element={<Polls />} />
+                            <Route path="/admin/options" element={<OptionVote />} />
+                            <Route path="/admin/reports" element={<Reports />} />
+                            <Route path="/admin/history" element={<History />} />
+                        </Route>
+                    </Route>
                 </Route>
+
+                {/* Catch-all Route */}
+                <Route path="*" element={<NotFound />} />
             </Routes>
         </BrowserRouter>
     );
