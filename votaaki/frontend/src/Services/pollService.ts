@@ -7,7 +7,7 @@ export const pollService = {
         try {
             const response = await fetch(`${API_URL}/polls`);
             if (!response.ok) {
-                throw new Error('Erro ao carregar enquetes');
+                throw new Error('Error loading polls');
             }
             return await response.json();
         } catch (error) {
@@ -20,7 +20,7 @@ export const pollService = {
         try {
             const response = await fetch(`${API_URL}/polls/${id}`);
             if (!response.ok) {
-                throw new Error('Erro ao carregar detalhes da enquete');
+                throw new Error('Error loading poll details');
             }
             return await response.json();
         } catch (error) {

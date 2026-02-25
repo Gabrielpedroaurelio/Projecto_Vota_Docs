@@ -1,7 +1,7 @@
 const API_URL = 'http://localhost:5000/api';
 
 export const voteService = {
-    async castVote(id_enquete: number, id_opcao_voto: number): Promise<void> {
+    async castVote(id_poll: number, id_option: number): Promise<void> {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/votes`, {
             method: 'POST',
@@ -9,12 +9,12 @@ export const voteService = {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ id_enquete, id_opcao_voto })
+            body: JSON.stringify({ id_poll, id_option })
         });
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.message || 'Erro ao registrar voto');
+            throw new Error(errorData.message || 'Error registering vote');
         }
     }
 };

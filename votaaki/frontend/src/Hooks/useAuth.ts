@@ -1,9 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../Services/authService';
-import type { UserLogin, UserRegister } from '../@types/types';
+import type { UserLogin, UserRegister, UserData } from '../@types/types';
 
 export function useAuth() {
+    const [user, setUser] = useState<UserData | null>(() => {
+        const savedUser = localStorage.getItem('user');
+        return savedUser ? JSON.parse(savedUser) : null;
+    });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
@@ -15,9 +19,10 @@ export function useAuth() {
             const response = await authService.login(data);
             localStorage.setItem('token', response.token);
             localStorage.setItem('user', JSON.stringify(response.user));
-            navigate('/');
+            setUser(response.user);
+            navigate(response.user.user_type === 'admin' ? '/dashboard' : '/');
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : 'Credenciais inválidas';
+            const message = err instanceof Error ? err.message : 'Invalid credentials';
             setError(message);
         } finally {
             setLoading(false);
@@ -31,7 +36,7 @@ export function useAuth() {
             await authService.register(data);
             return true;
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : 'Erro ao cadastrar';
+            const message = err instanceof Error ? err.message : 'Error registering';
             setError(message);
             return false;
         } finally {
@@ -42,8 +47,9 @@ export function useAuth() {
     const logout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        setUser(null);
         navigate('/auth');
     };
 
-    return { login, register, logout, loading, error, setError };
+    return { user, login, register, logout, loading, error, setError };
 }

@@ -14,7 +14,7 @@ export function usePolls() {
             setPolls(data);
             setError(null);
         } catch {
-            setError('Falha ao carregar as enquetes. Tente novamente mais tarde.');
+            setError('Failed to load polls. Please try again later.');
         } finally {
             setLoading(false);
         }

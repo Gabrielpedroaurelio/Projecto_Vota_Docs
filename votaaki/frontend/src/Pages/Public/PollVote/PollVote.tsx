@@ -12,7 +12,7 @@ export default function PollVote() {
     const { poll, loading, error, voting, success, castVote } = usePollVote(id || '');
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
 
-    if (loading) return <><NavMenu /><Loading texto="Carregando enquete" /></>;
+    if (loading) return <><NavMenu /><Loading texto="Loading poll..." /></>;
 
     if (error && !poll) {
         return (
@@ -21,27 +21,27 @@ export default function PollVote() {
                 <div className={styles.voteContainer}>
                     <div className={styles.errorBox}>{error}</div>
                     <button onClick={() => navigate('/')} className={styles.voteButton}>
-                        <HiOutlineArrowLeft /> Voltar
+                        <HiOutlineArrowLeft /> Back
                     </button>
                 </div>
             </>
         );
     }
 
-    if (success || poll?.usuario_ja_votou) {
+    if (success || poll?.user_voted) {
         return (
             <>
                 <NavMenu />
                 <div className={styles.voteContainer}>
                     <div className={styles.successMessage}>
                         <HiOutlineCheckCircle className={styles.successIcon} />
-                        <h2 className={styles.title}>Voto Registrado!</h2>
+                        <h2 className={styles.title}>Vote Registered!</h2>
                         <p className={styles.description}>
-                            Obrigado por participar. Seus dados foram contabilizados com sucesso.
+                            Thank you for participating. Your vote has been successfully recorded.
                         </p>
                         <div className={styles.actions} style={{ marginTop: '2rem' }}>
                             <button onClick={() => navigate('/')} className={styles.voteButton}>
-                                Ver outras enquetes
+                                Explore other polls
                             </button>
                         </div>
                     </div>
@@ -55,25 +55,25 @@ export default function PollVote() {
             <NavMenu />
             <div className={styles.voteContainer}>
                 <header className={styles.pollHeader}>
-                    <h1 className={styles.title}>{poll?.titulo}</h1>
-                    <p className={styles.description}>{poll?.descricao}</p>
+                    <h1 className={styles.title}>{poll?.title}</h1>
+                    <p className={styles.description}>{poll?.description}</p>
                 </header>
 
                 {error && <div className={styles.errorBox}>{error}</div>}
 
                 <div className={styles.optionsGrid}>
-                    {poll?.opcoes?.map((opcao) => (
+                    {poll?.options?.map((option) => (
                         <div 
-                            key={opcao.id_opcao_voto}
-                            className={`${styles.optionCard} ${selectedOption === opcao.id_opcao_voto ? styles.optionCardSelected : ''}`}
-                            onClick={() => setSelectedOption(opcao.id_opcao_voto)}
+                            key={option.id_option}
+                            className={`${styles.optionCard} ${selectedOption === option.id_option ? styles.optionCardSelected : ''}`}
+                            onClick={() => setSelectedOption(option.id_option)}
                         >
                             <div className={styles.radioCircle}>
                                 <div className={styles.radioInner} />
                             </div>
                             <div className={styles.optionText}>
-                                <span className={styles.optionDesignacao}>{opcao.designacao}</span>
-                                {opcao.descricao && <span className={styles.optionDesc}>{opcao.descricao}</span>}
+                                <span className={styles.optionDesignation}>{option.designation}</span>
+                                {option.description && <span className={styles.optionDesc}>{option.description}</span>}
                             </div>
                         </div>
                     ))}
@@ -85,7 +85,7 @@ export default function PollVote() {
                         disabled={selectedOption === null || voting}
                         onClick={() => selectedOption && castVote(selectedOption)}
                     >
-                        {voting ? 'Processando...' : <><HiOutlineBolt /> Confirmar Voto</>}
+                        {voting ? 'Processing...' : <><HiOutlineBolt /> Confirm Vote</>}
                     </button>
                 </div>
             </div>

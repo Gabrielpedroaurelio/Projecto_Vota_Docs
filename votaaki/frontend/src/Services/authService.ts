@@ -12,12 +12,12 @@ export const authService = {
         const response = await fetch(`${API_URL}/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: data.email, senha: data.password })
+            body: JSON.stringify({ email: data.email, password: data.password })
         });
 
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.message || 'Erro ao fazer login');
+            throw new Error(error.message || 'Error logging in');
         }
 
         return response.json();
@@ -27,12 +27,12 @@ export const authService = {
         const response = await fetch(`${API_URL}/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nome: data.name, email: data.email, senha: data.password })
+            body: JSON.stringify({ name: data.name, email: data.email, password: data.password })
         });
 
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.message || 'Erro ao criar conta');
+            throw new Error(error.message || 'Error creating account');
         }
 
         return response.json();

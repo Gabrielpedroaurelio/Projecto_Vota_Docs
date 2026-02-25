@@ -1,12 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { HiOutlineLockClosed, HiOutlineUser, HiOutlineArrowRight } from 'react-icons/hi2';
+import { useNavigate } from 'react-router-dom';
 import {CiVoicemail} from 'react-icons/ci'
 import { useAuth } from '../../../Hooks/useAuth';
 import styles from './Auth.module.css';
 
 export default function Auth() {
     const [isSignup, setIsSignup] = useState(false);
-    const { login, register, loading, error, setError } = useAuth();
+    const { user, login, register, loading, error, setError } = useAuth();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (user?.user_type === 'admin') {
+            navigate('/dashboard');
+        }
+    }, [user, navigate]);
     
     const [formData, setFormData] = useState({
         name: '',

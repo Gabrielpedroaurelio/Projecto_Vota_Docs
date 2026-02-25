@@ -17,7 +17,7 @@ export function usePollVote(pollId: string) {
             setPoll(data);
             setError(null);
         } catch {
-            setError('Falha ao carregar os detalhes da enquete.');
+            setError('Failed to load poll details.');
         } finally {
             setLoading(false);
         }
@@ -32,11 +32,11 @@ export function usePollVote(pollId: string) {
         
         try {
             setVoting(true);
-            await voteService.castVote(poll.id_enquete, optionId);
+            await voteService.castVote(poll.id_poll, optionId);
             setSuccess(true);
             setError(null);
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : 'Erro ao registrar voto';
+            const message = err instanceof Error ? err.message : 'Error registering vote';
             setError(message);
         } finally {
             setVoting(false);

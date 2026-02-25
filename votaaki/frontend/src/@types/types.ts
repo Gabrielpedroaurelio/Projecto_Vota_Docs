@@ -13,10 +13,10 @@ export interface UserData {
     email?: string;
     path_thumb?: string;
     last_login?: string;
-    status?: string;
-    user_type?: string;
-    create_at?: string;
-    update_at?: string;
+    status?: 'active' | 'inactive' | 'banned';
+    user_type?: 'admin' | 'user';
+    created_at?: string;
+    updated_at?: string;
 }
 
 export interface AuthResponse {
@@ -25,27 +25,27 @@ export interface AuthResponse {
 }
 
 export interface PollOption {
-    id_opcao_voto: number;
-    id_enquete_opcao_voto?: number; // Bridge ID from Enquete_Opcao_Voto
-    designacao: string;
-    descricao?: string;
-    total_votos?: number;
+    id_option: number;
+    id_poll_option?: number; // Bridge ID
+    designation: string;
+    description?: string;
+    total_votes?: number;
 }
 
 export interface Poll {
-    id_enquete: number;
-    titulo: string;
-    descricao?: string;
-    data_inicio: string;
-    data_fim?: string;
-    status: 'ativa' | 'encerrada';
-    criador: string;
-    total_votos: number;
-    opcoes?: PollOption[];
-    usuario_ja_votou?: boolean;
+    id_poll: number;
+    title: string;
+    description?: string;
+    start_date: string;
+    end_date?: string;
+    status: 'active' | 'closed';
+    creator: string;
+    total_votes: number;
+    options?: PollOption[];
+    user_voted?: boolean;
 }
 
 export interface PollCardProps {
-    enquete: Poll;
+    poll: Poll;
     onVote?: (id: string) => void;
 }
