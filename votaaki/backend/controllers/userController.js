@@ -14,8 +14,7 @@ import { logActivity } from '../utils/logHelper.js';
  */
 export const getUsers = async (req, res) => {
   try {
-    const { page = 1, limit = 10, search = '', status = 'all' } = req.query;
-    const offset = (page - 1) * limit;
+    const { search = '', status = 'all' } = req.query;
 
     let query = `
       SELECT 
@@ -32,56 +31,27 @@ export const getUsers = async (req, res) => {
     `;
     const params = [];
 
-    // Search filter
     if (search) {
       query += ` AND (name LIKE ? OR email LIKE ?)`;
       params.push(`%${search}%`, `%${search}%`);
     }
 
-    // Status filter
     if (status !== 'all') {
       query += ` AND status = ?`;
       params.push(status);
     }
 
-    query += ` ORDER BY created_at DESC LIMIT ? OFFSET ?`;
-    params.push(parseInt(limit), offset);
+    query += ` ORDER BY created_at DESC`;
 
     const [users] = await db.execute(query, params);
+    return res.json(users);
 
-    // Count total for pagination
-    let countQuery = `
-      SELECT COUNT(*) as total 
-      FROM User 
-      WHERE 1=1
-    `;
-    const countParams = [];
-
-    if (search) {
-      countQuery += ` AND (name LIKE ? OR email LIKE ?)`;
-      countParams.push(`%${search}%`, `%${search}%`);
-    }
-
-    if (status !== 'all') {
-      countQuery += ` AND status = ?`;
-      countParams.push(status);
-    }
-
-    const [countResult] = await db.execute(countQuery, countParams);
-    const total = countResult[0].total;
-
-    res.json({
-      users,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        total,
-        pages: Math.ceil(total / limit)
-      }
-    });
   } catch (error) {
     console.error('Error listing users:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ 
+      message: 'Internal server error',
+      error: error.message
+    });
   }
 };
 

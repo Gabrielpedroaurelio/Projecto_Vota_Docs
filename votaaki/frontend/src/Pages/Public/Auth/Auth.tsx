@@ -12,7 +12,7 @@ export default function Auth() {
 
     useEffect(() => {
         if (user?.user_type === 'admin') {
-            navigate('/dashboard');
+            navigate('/admin/dashboard');
         }
     }, [user, navigate]);
     

@@ -28,13 +28,17 @@ export const adminService = {
     /**
      * Get all users with pagination
      */
-    async getUsers(page = 1, limit = 10, search = '', status = 'all') {
+    async getUsers(search = '', status = 'all') {
         const token = localStorage.getItem('token');
-        const response = await fetch(`${API_URL}/users?page=${page}&limit=${limit}&search=${search}&status=${status}`, {
+        const response = await fetch(`${API_URL}/users?search=${search}&status=${status}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (!response.ok) throw new Error('Error loading users');
-        return response.json();
+        
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.error || data.message || 'Erro ao carregar utilizadores');
+        }
+        return data; // returns the User[] array directly
     },
 
     /**
@@ -59,5 +63,55 @@ export const adminService = {
         });
         if (!response.ok) throw new Error('Error loading poll stats');
         return response.json();
+    },
+    /**
+     * Update user details (status, type, etc)
+     */
+    async updateUser(id: number, data: unknown) {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/users/${id}`, {
+            method: 'PUT',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) throw new Error('Error updating user');
+        return response.json();
+    },
+
+    /**
+     * Delete user
+     */
+    async deleteUser(id: number) {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/users/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Error deleting user');
+        return response.json();
+    },
+
+    /**
+     * Create a new user manually
+     */
+    async createUser(data: unknown) {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/users`, {
+            method: 'POST',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.error || result.message || 'Erro ao criar utilizador');
+        }
+        return result;
     }
 };

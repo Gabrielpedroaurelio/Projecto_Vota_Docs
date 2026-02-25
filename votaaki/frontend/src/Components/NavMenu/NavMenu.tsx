@@ -13,7 +13,10 @@ export default function NavMenu() {
             <nav className={styles.navbarmenu}>
                 <Link to="/">Home</Link>
                 {user?.user_type === 'admin' && (
-                    <Link to="/dashboard" className={styles.adminLink}>Dashboard</Link>
+                    <>
+                        <Link to="/dashboard" className={styles.adminLink}>Dashboard</Link>
+                        <Link to="/users" className={styles.adminLink}>Usuários</Link>
+                    </>
                 )}
                 {user ? (
                     <button onClick={logout} className={styles.logoutBtn}>Logout</button>

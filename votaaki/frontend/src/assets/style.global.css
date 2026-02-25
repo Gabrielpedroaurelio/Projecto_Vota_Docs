@@ -96,8 +96,8 @@ button, input, select, textarea {
 ::-webkit-scrollbar-thumb { background: var(--slate-300); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--slate-400); }
 
- 
+ /*
 :focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
-}
+}*/

@@ -1,0 +1,12 @@
+.layout {
+    display: flex;
+    min-height: 100vh;
+    background-color: #f8fafc;
+}
+
+.content {
+    flex: 1;
+    margin-left: 260px; /* Width of the sidebar */
+    min-height: 100vh;
+    overflow-y: auto;
+}
