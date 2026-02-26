@@ -1,8 +1,8 @@
 /**
- * Controller de Autenticação - VotaAki
+ * Authentication Controller - VotaAki
  * 
- * Gere o registo e o login de utilizadores, incluindo encriptação de passwords
- * com bcrypt e geração de tokens JWT.
+ * Manages user registration and login, including password encryption
+ * with bcrypt and JWT token generation.
  */
 
 import db from '../db/config.js';
@@ -10,89 +10,124 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 /**
- * Registo de Novo Utilizador
- * 
- * Cria uma nova conta de utilizador com password encriptada.
+ * Capture Login Activity
  */
-export const register = async (req, res) => {
-  const { nome, email, senha } = req.body;
-
+const logLogin = async (id_user, req) => {
   try {
-    // Verifica se já existe um utilizador com o email fornecido
-    const [existingUser] = await db.execute('SELECT * FROM Usuario WHERE email_usuario = ?', [email]);
-    if (existingUser.length > 0) {
-      return res.status(400).json({ message: 'Lamentamos, mas este email já está registado.' });
-    }
+    const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    const browser = req.headers['user-agent'] || 'unknown';
+    const device = 'Generic Device'; // Simplified, could be parsed from user-agent
 
-    // Gera o salt e encripta a password para armazenamento seguro
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(senha, salt);
-
-    // Insere o utilizador na base de dados
-    const [result] = await db.execute(
-      'INSERT INTO Usuario (nome_usuario, email_usuario, senha_usuario) VALUES (?, ?, ?)',
-      [nome, email, hashedPassword]
+    await db.execute(
+      'INSERT INTO LoginLog (id_user, ip_address, device_info, browser_info) VALUES (?, ?, ?, ?)',
+      [id_user, ip, device, browser]
     );
-
-    res.status(201).json({ message: 'Conta criada com sucesso!', userId: result.insertId });
   } catch (error) {
-    console.error('Erro no Registo:', error);
-    res.status(500).json({ message: 'Ocorreu um erro no servidor ao tentar registar o utilizador.' });
+    console.error('Failed to log login:', error);
   }
 };
 
 /**
- * Login de Utilizador
- * 
- * Valida credenciais e devolve um Token JWT para autenticação.
+ * User Registration
  */
-export const login = async (req, res) => {
-  const { email, senha } = req.body;
+export const register = async (req, res) => {
+  const { name, email, password } = req.body;
 
   try {
-    // Procura o utilizador pelo email
-    const [users] = await db.execute('SELECT * FROM Usuario WHERE email_usuario = ?', [email]);
+    // Check if user already exists
+    const [existingUser] = await db.execute('SELECT * FROM User WHERE email = ?', [email]);
+    if (existingUser.length > 0) {
+      return res.status(400).json({ message: 'Sorry, this email is already registered.' });
+    }
+
+    // Encrypt password
+    const salt = await bcrypt.genSalt(10);
+    const password_hash = await bcrypt.hash(password, salt);
+
+    // Insert user into database
+    const [result] = await db.execute(
+      'INSERT INTO User (name, email, password_hash) VALUES (?, ?, ?)',
+      [name, email, password_hash]
+    );
+
+    res.status(201).json({ message: 'Account created successfully!', userId: result.insertId });
+  } catch (error) {
+    console.error('Registration Error:', error);
+    res.status(500).json({ message: 'Server error during registration.' });
+  }
+};
+
+/**
+ * User Login
+ */
+export const login = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    // Find user by email
+    const [users] = await db.execute('SELECT * FROM User WHERE email = ?', [email]);
     const user = users[0];
 
-    // Verifica se o utilizador existe
+    // Check if user exists
     if (!user) {
-      return res.status(400).json({ message: 'Email ou password incorretos.' });
+      return res.status(400).json({ message: 'Usuario Não Encontrado' });
     }
 
-    // Compara a password fornecida com a hash guardada
-    const isMatch = await bcrypt.compare(senha, user.senha_usuario);
+    // Compare password
+    const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
-      return res.status(400).json({ message: 'Email ou password incorretos.' });
+      return res.status(400).json({ message: 'Senha Errada' });
     }
 
-    // Verifica se a conta está ativa
-    if (user.status !== 'ativo') {
-      return res.status(403).json({ message: `A sua conta encontra-se atualmente ${user.status}.` });
+    // Check account status
+    if (user.status !== 'active') {
+      return res.status(403).json({ message: `Your account is currently ${user.status}.` });
     }
 
-    // Atualiza o registo do último login
-    await db.execute('UPDATE Usuario SET ultimo_login = NOW() WHERE id_usuario = ?', [user.id_usuario]);
+    // Update last login
+    await db.execute('UPDATE User SET last_login = NOW() WHERE id_user = ?', [user.id_user]);
 
-    // Gera o Token JWT contendo o ID e o Cargo (tipo) do utilizador
+    // Log Activity
+    await logLogin(user.id_user, req);
+
+    // Generate JWT
     const token = jwt.sign(
-      { id: user.id_usuario, tipo: user.tipo_usuario },
+      { id: user.id_user, user_type: user.user_type },
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
 
-    // Devolve os dados essenciais para o Frontend
+    // Return essential data
     res.json({
       token,
       user: {
-        id: user.id_usuario,
-        nome: user.nome_usuario,
-        email: user.email_usuario,
-        tipo: user.tipo_usuario,
-        imagem: user.caminho_imagem
+        id: user.id_user,
+        name: user.name,
+        email: user.email,
+        user_type: user.user_type,
+        image: user.path_thumb
       }
     });
   } catch (error) {
-    console.error('Erro no Login:', error);
-    res.status(500).json({ message: 'Erro interno ao processar o login.' });
+    console.error('Login Error:', error);
+    res.status(500).json({ message: 'Internal error processing login.' });
+  }
+};
+
+/**
+ * User Logout
+ */
+export const logout = async (req, res) => {
+  const id_user = req.user.id;
+  try {
+    // Mark the latest active session as closed
+    await db.execute(
+      'UPDATE LoginLog SET logout_time = NOW() WHERE id_user = ? AND logout_time IS NULL ORDER BY login_time DESC LIMIT 1',
+      [id_user]
+    );
+    res.json({ message: 'Logged out successfully.' });
+  } catch (error) {
+    console.error('Logout Error:', error);
+    res.status(500).json({ message: 'Error during logout.' });
   }
 };

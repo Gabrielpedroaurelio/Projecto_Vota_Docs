@@ -1,92 +1,102 @@
 /**
- * Controller de Enquetes - VotaAki (Versão Otimizada)
+ * Poll Controller - VotaAki (Optimized Version)
  * 
- * Responsável pela criação, listagem e visualização detalhada de enquetes,
- * utilizando transações para garantir a consistência das opções de voto e
- * functions do banco para performance otimizada.
+ * Responsible for creating, listing, and detailed viewing of polls,
+ * using batch operations/transactions and optimized database functions.
  */
 
 import db from '../db/config.js';
+import { logActivity } from '../utils/logHelper.js';
 
 /**
- * Criar uma Nova Enquete (Acesso Restrito a Admin)
+ * Create a New Poll (Admin Only) - Optimized
  */
 export const createPoll = async (req, res) => {
-  const { titulo, descricao, data_inicio, data_fim, opcoes } = req.body;
-  const id_usuario = req.user.id; // ID do utilizador autenticado via middleware
+  const { title, description, start_date, end_date, options } = req.body;
+  const id_user = req.user.id;
 
-  // Validação: No mínimo duas opções de voto
-  if (!opcoes || opcoes.length < 2) {
-    return res.status(400).json({ message: 'Uma enquete deve ter no mínimo duas opções de voto.' });
+  if (!options || options.length < 2) {
+    return res.status(400).json({ message: 'A poll must have at least two vote options.' });
   }
 
   const connection = await db.getConnection();
   try {
-    // Inicia a transação SQL
     await connection.beginTransaction();
 
-    // 1. Insere a Enquete principal
-    const [enqueteResult] = await connection.execute(
-      'INSERT INTO Enquete (titulo, descricao, data_inicio, data_fim, id_usuario) VALUES (?, ?, ?, ?, ?)',
-      [titulo, descricao, data_inicio || new Date(), data_fim, id_usuario]
+    // 1. Insert Main Poll
+    const [pollResult] = await connection.execute(
+      'INSERT INTO Poll (title, description, start_date, end_date, id_user) VALUES (?, ?, ?, ?, ?)',
+      [title, description, start_date || new Date(), end_date, id_user]
     );
 
-    const id_enquete = enqueteResult.insertId;
+    const id_poll = pollResult.insertId;
 
-    // 2. Insere as opções de voto em lote
-    const opcoesValues = opcoes.map(opcao => [id_enquete, opcao.id_opcao_voto]);
+    // 2. Insert options and link them (Optimized batch insert)
+    // Note: In refined schema, we insert into VoteOption first, then Poll_VoteOption.
+    // Batching VoteOption inserts:
+    const optionIds = [];
+    for (const opt of options) {
+      const [optResult] = await connection.execute(
+        'INSERT INTO VoteOption (designation, description) VALUES (?, ?)',
+        [opt.designation, opt.description || '']
+      );
+      optionIds.push(optResult.insertId);
+    }
+
+    // Batch link bridge table
+    const bridgeValues = optionIds.map(id => [id_poll, id]);
     await connection.query(
-      'INSERT INTO Enquete_Opcao_Voto (id_enquete, id_opcao_voto) VALUES ?',
-      [opcoesValues]
+      'INSERT INTO Poll_VoteOption (id_poll, id_option) VALUES ?',
+      [bridgeValues]
     );
 
-    // Confirma a transação
+    // 3. Log Activity
+    await logActivity(id_user, 'Poll', id_poll, 'Insert', null, { title, options_count: options.length });
+
     await connection.commit();
 
-    // Busca a enquete completa com opções usando function para total de votos
-    const [pollWithVotes] = await connection.execute(`
+    // Fetch complete poll with options and vote counts
+    const [pollData] = await connection.execute(`
       SELECT 
-        e.*,
-        u.nome_usuario as criador,
-        fn_total_votos_enquete(e.id_enquete) as total_votos
-      FROM Enquete e
-      JOIN Usuario u ON e.id_usuario = u.id_usuario
-      WHERE e.id_enquete = ?
-    `, [id_enquete]);
+        p.*,
+        u.name as creator,
+        fn_poll_total_votes(p.id_poll) as total_votes
+      FROM Poll p
+      JOIN User u ON p.id_user = u.id_user
+      WHERE p.id_poll = ?
+    `, [id_poll]);
 
-    // Busca as opções da enquete
     const [pollOptions] = await connection.execute(`
       SELECT 
-        ov.id_opcao_voto,
-        ov.designacao,
-        ov.descricao,
-        fn_total_votos_opcao(?, ov.id_opcao_voto) as total_votos
-      FROM OpcaoVoto ov
-      JOIN Enquete_Opcao_Voto eov ON ov.id_opcao_voto = eov.id_opcao_voto
-      WHERE eov.id_enquete = ?
-      ORDER BY ov.id_opcao_voto
-    `, [id_enquete, id_enquete]);
+        vo.id_option,
+        vo.designation,
+        vo.description,
+        fn_option_total_votes(?, vo.id_option) as total_votes
+      FROM VoteOption vo
+      JOIN Poll_VoteOption pvo ON vo.id_option = pvo.id_option
+      WHERE pvo.id_poll = ?
+      ORDER BY vo.id_option
+    `, [id_poll, id_poll]);
 
     res.status(201).json({
-      message: 'Enquete criada com sucesso',
-      enquete: {
-        ...pollWithVotes[0],
-        opcoes: pollOptions
+      message: 'Poll created successfully',
+      poll: {
+        ...pollData[0],
+        options: pollOptions
       }
     });
 
   } catch (error) {
-    // Rollback em caso de erro
     await connection.rollback();
-    console.error('Erro ao criar enquete:', error);
-    res.status(500).json({ message: 'Erro interno do servidor' });
+    console.error('Optimized Create Poll Error:', error);
+    res.status(500).json({ message: 'Internal server error' });
   } finally {
     connection.release();
   }
 };
 
 /**
- * Listar todas as Enquetes (Público) - Versão Otimizada
+ * List all Polls (Public) - Optimized
  */
 export const getPollsOptimized = async (req, res) => {
   try {
@@ -95,7 +105,7 @@ export const getPollsOptimized = async (req, res) => {
       limit = 10, 
       search = '', 
       status = 'all',
-      sort_by = 'criado_em',
+      sort_by = 'created_at',
       order = 'DESC'
     } = req.query;
 
@@ -104,52 +114,47 @@ export const getPollsOptimized = async (req, res) => {
     let whereClause = 'WHERE 1=1';
     const params = [];
 
-    // Filtro por busca
     if (search) {
-      whereClause += ' AND (e.titulo LIKE ? OR e.descricao LIKE ?)';
+      whereClause += ' AND (p.title LIKE ? OR p.description LIKE ?)';
       params.push(`%${search}%`, `%${search}%`);
     }
 
-    // Filtro por status
     if (status !== 'all') {
-      whereClause += ' AND e.status = ?';
+      whereClause += ' AND p.status = ?';
       params.push(status);
     }
 
-    // Validação do campo de ordenação
-    const validSortFields = ['criado_em', 'data_fim', 'titulo', 'total_votos'];
-    const sortField = validSortFields.includes(sort_by) ? sort_by : 'criado_em';
+    const validSortFields = ['created_at', 'end_date', 'title', 'total_votes'];
+    const sortField = validSortFields.includes(sort_by) ? sort_by : 'created_at';
     const sortOrder = order.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
-    // Query principal usando view e functions
     const [polls] = await db.execute(`
       SELECT 
-        e.id_enquete,
-        e.titulo,
-        e.descricao,
-        e.data_inicio,
-        e.data_fim,
-        e.status,
-        e.criado_em,
-        u.nome_usuario as criador,
-        u.email_usuario as email_criador,
-        fn_total_votos_enquete(e.id_enquete) as total_votos,
+        p.id_poll,
+        p.title,
+        p.description,
+        p.start_date,
+        p.end_date,
+        p.status,
+        p.created_at,
+        u.name as creator,
+        u.email as creator_email,
+        fn_poll_total_votes(p.id_poll) as total_votes,
         CASE 
-          WHEN e.data_fim IS NULL THEN NULL
-          WHEN e.data_fim < NOW() THEN 'encerrada'
-          ELSE 'ativa'
-        END as status_atual
-      FROM Enquete e
-      JOIN Usuario u ON e.id_usuario = u.id_usuario
+          WHEN p.end_date IS NULL THEN NULL
+          WHEN p.end_date < NOW() THEN 'closed'
+          ELSE 'active'
+        END as current_status
+      FROM Poll p
+      JOIN User u ON p.id_user = u.id_user
       ${whereClause}
       ORDER BY ${sortField} ${sortOrder}
       LIMIT ? OFFSET ?
     `, [...params, parseInt(limit), offset]);
 
-    // Contar total para paginação
     const [countResult] = await db.execute(`
       SELECT COUNT(*) as total 
-      FROM Enquete e 
+      FROM Poll p 
       ${whereClause}
     `, params);
 
@@ -161,80 +166,80 @@ export const getPollsOptimized = async (req, res) => {
         page: parseInt(page),
         limit: parseInt(limit),
         total,
-        pages: Math.ceil(total / limit)
+        total_pages: Math.ceil(total / limit)
       }
     });
 
   } catch (error) {
-    console.error('Erro ao listar enquetes:', error);
-    res.status(500).json({ message: 'Erro interno do servidor' });
+    console.error('Error listing optimized polls:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
 /**
- * Obter Enquete por ID (Público) - Versão Otimizada
+ * Get Poll by ID (Public) - Optimized
  */
 export const getPollByIdOptimized = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Buscar enquete usando function para total de votos
     const [polls] = await db.execute(`
       SELECT 
-        e.*,
-        u.nome_usuario as criador,
-        u.email_usuario as email_criador,
-        fn_total_votos_enquete(e.id_enquete) as total_votos,
+        p.*,
+        u.name as creator,
+        u.email as creator_email,
+        fn_poll_total_votes(p.id_poll) as total_votes,
         CASE 
-          WHEN e.data_fim IS NULL THEN NULL
-          WHEN e.data_fim < NOW() THEN 'encerrada'
-          ELSE 'ativa'
-        END as status_atual
-      FROM Enquete e
-      JOIN Usuario u ON e.id_usuario = u.id_usuario
-      WHERE e.id_enquete = ?
+          WHEN p.end_date IS NULL THEN NULL
+          WHEN p.end_date < NOW() THEN 'closed'
+          ELSE 'active'
+        END as current_status
+      FROM Poll p
+      JOIN User u ON p.id_user = u.id_user
+      WHERE p.id_poll = ?
     `, [id]);
 
     if (polls.length === 0) {
-      return res.status(404).json({ message: 'Enquete não encontrada' });
+      return res.status(404).json({ message: 'Poll not found' });
     }
 
     const poll = polls[0];
 
-    // Buscar opções da enquete usando function para votos por opção
+    // Fetch options with vote counts
     const [options] = await db.execute(`
       SELECT 
-        ov.id_opcao_voto,
-        ov.designacao,
-        ov.descricao,
-        fn_total_votos_opcao(?, ov.id_opcao_voto) as total_votos
-      FROM OpcaoVoto ov
-      JOIN Enquete_Opcao_Voto eov ON ov.id_opcao_voto = eov.id_opcao_voto
-      WHERE eov.id_enquete = ?
-      ORDER BY ov.id_opcao_voto
+        vo.id_option,
+        vo.designation,
+        vo.description,
+        pvo.id_poll_option,
+        fn_option_total_votes(?, vo.id_option) as total_votes
+      FROM VoteOption vo
+      JOIN Poll_VoteOption pvo ON vo.id_option = pvo.id_option
+      WHERE pvo.id_poll = ?
+      ORDER BY vo.id_option
     `, [id, id]);
 
-    // Verificar se usuário já votou (se estiver autenticado)
-    let usuario_ja_votou = false;
+    // Check if user has already voted
+    let user_voted = false;
     if (req.user) {
       const [voteCheck] = await db.execute(`
         SELECT COUNT(*) as count
-        FROM Voto v
-        JOIN Enquete_Opcao_Voto eov ON v.id_enquete_opcao_voto = eov.id_enquete_opcao_voto
-        WHERE v.id_usuario = ? AND eov.id_enquete = ?
+        FROM Vote v
+        JOIN Poll_VoteOption pvo ON v.id_poll_option = pvo.id_poll_option
+        WHERE v.id_user = ? AND pvo.id_poll = ?
       `, [req.user.id, id]);
 
-      usuario_ja_votou = voteCheck[0].count > 0;
+      user_voted = voteCheck[0].count > 0;
     }
 
     res.json({
       ...poll,
-      opcoes: options,
-      usuario_ja_votou
+      options,
+      user_voted
     });
 
   } catch (error) {
-    console.error('Erro ao obter enquete:', error);
-    res.status(500).json({ message: 'Erro interno do servidor' });
+    console.error('Error getting optimized poll:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };

@@ -1,209 +1,258 @@
 /**
- * Controller de Enquetes - VotaAki
+ * Poll Controller - VotaAki
  * 
- * Responsável pela criação, listagem e visualização detalhada de enquetes,
- * utilizando transações para garantir a consistência das opções de voto.
+ * Responsible for creating, listing, and detailed viewing of polls,
+ * using transactions to ensure consistency of vote options.
  */
 
 import db from '../db/config.js';
+import { logActivity } from '../utils/logHelper.js';
 
 /**
- * Obter Estatísticas das Enquetes (Acesso Admin)
+ * Get Poll Statistics (Admin Access)
  */
 export const getPollStats = async (req, res) => {
   try {
     const [stats] = await db.execute(`
       SELECT 
-        COUNT(*) as total_enquetes,
-        COUNT(CASE WHEN e.data_inicio <= NOW() AND e.data_fim >= NOW() THEN 1 END) as enquetes_ativas,
-        COUNT(CASE WHEN e.data_inicio > NOW() THEN 1 END) as enquetes_futuras,
-        COUNT(CASE WHEN e.data_fim < NOW() THEN 1 END) as enquetes_encerradas,
-        COUNT(CASE WHEN e.data_criacao >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 END) as enquetes_ultima_semana,
-        COUNT(CASE WHEN e.data_criacao >= DATE_SUB(NOW(), INTERVAL 24 HOUR) THEN 1 END) as enquetes_ultima_24h,
-        COALESCE(SUM(fn_total_votos_enquete(e.id_enquete)), 0) as total_votos_geral
-      FROM Enquete e
+        COUNT(*) as total_polls,
+        COUNT(CASE WHEN p.start_date <= NOW() AND (p.end_date IS NULL OR p.end_date >= NOW()) THEN 1 END) as active_polls,
+        COUNT(CASE WHEN p.start_date > NOW() THEN 1 END) as future_polls,
+        COUNT(CASE WHEN p.end_date < NOW() THEN 1 END) as closed_polls,
+        COUNT(CASE WHEN p.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 END) as polls_last_week,
+        COUNT(CASE WHEN p.created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR) THEN 1 END) as polls_last_24h,
+        COALESCE(SUM(fn_poll_total_votes(p.id_poll)), 0) as total_votes_overall
+      FROM Poll p
     `);
     
     res.json({ stats: stats[0] });
   } catch (error) {
-    console.error('Erro ao obter estatísticas das enquetes:', error);
-    res.status(500).json({ message: 'Erro ao carregar estatísticas das enquetes.' });
+    console.error('Error fetching poll stats:', error);
+    res.status(500).json({ message: 'Error loading poll statistics.' });
   }
 };
 
 /**
- * Atualizar Enquete (Acesso Admin)
+ * Update Poll (Admin Access)
  */
 export const updatePoll = async (req, res) => {
   const { id } = req.params;
-  const { titulo, descricao, data_inicio, data_fim } = req.body;
+  const { title, description, start_date, end_date, status, options } = req.body;
+  const id_user = req.user.id;
   
+  const connection = await db.getConnection();
   try {
-    const [result] = await db.execute(
-      'UPDATE Enquete SET titulo = ?, descricao = ?, data_inicio = ?, data_fim = ? WHERE id_enquete = ?',
-      [titulo, descricao, data_inicio, data_fim, id]
+    await connection.beginTransaction();
+
+    // 1. Check if poll exists
+    const [oldData] = await connection.execute('SELECT * FROM Poll WHERE id_poll = ?', [id]);
+    if (oldData.length === 0) {
+      await connection.rollback();
+      return res.status(404).json({ message: 'Poll not found.' });
+    }
+
+    // 2. Update Main Poll
+    await connection.execute(
+      'UPDATE Poll SET title = ?, description = ?, start_date = ?, end_date = ?, status = ? WHERE id_poll = ?',
+      [title, description, start_date, end_date, status || 'active', id]
     );
-    
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Enquete não encontrada.' });
+
+    // 3. Sync Options (if provided)
+    if (options && options.length >= 2) {
+      // Get current links
+      const [currentLinks] = await connection.execute('SELECT id_option FROM Poll_VoteOption WHERE id_poll = ?', [id]);
+      const currentOptionIds = currentLinks.map(l => l.id_option);
+      
+      const newOptionIds = [];
+
+      for (const opt of options) {
+        let optId = opt.id_option;
+        
+        if (!optId) {
+          // Create new option
+          const [optResult] = await connection.execute(
+            'INSERT INTO VoteOption (designation, description) VALUES (?, ?)',
+            [opt.designation, opt.description || '']
+          );
+          optId = optResult.insertId;
+        }
+        newOptionIds.push(optId);
+
+        // Link if not already linked
+        if (!currentOptionIds.includes(optId)) {
+          await connection.execute(
+            'INSERT INTO Poll_VoteOption (id_poll, id_option) VALUES (?, ?)',
+            [id, optId]
+          );
+        }
+      }
+
+      // Unlink options that are no longer present
+      const optionsToRemove = currentOptionIds.filter(id_opt => !newOptionIds.includes(id_opt));
+      if (optionsToRemove.length > 0) {
+        await connection.execute(
+          `DELETE FROM Poll_VoteOption WHERE id_poll = ? AND id_option IN (${optionsToRemove.join(',')})`,
+          [id]
+        );
+      }
     }
     
-    res.json({ message: 'Enquete atualizada com sucesso!' });
+    // Log Activity
+    await logActivity(id_user, 'Poll', id, 'Update', oldData[0], { title, description, start_date, end_date, status, options_count: options?.length });
+
+    await connection.commit();
+    res.json({ message: 'Poll synchronized successfully!' });
   } catch (error) {
-    console.error('Erro ao atualizar enquete:', error);
-    res.status(500).json({ message: 'Erro ao atualizar enquete.' });
+    await connection.rollback();
+    console.error('Error updating poll:', error);
+    res.status(500).json({ message: 'Error updating poll.' });
+  } finally {
+    connection.release();
   }
 };
 
+
 /**
- * Excluir Enquete (Acesso Admin)
+ * Delete Poll (Admin Access)
  */
 export const deletePoll = async (req, res) => {
   const { id } = req.params;
+  const id_user = req.user.id;
   
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
     
-    // Excluir vínculos com opções de voto
-    await connection.execute(
-      'DELETE FROM Enquete_Opcao_Voto WHERE id_enquete = ?',
-      [id]
-    );
-    
-    // Excluir votos associados à enquete
-    await connection.execute(
-      'DELETE FROM Voto WHERE id_enquete = ?',
-      [id]
-    );
-    
-    // Excluir a enquete
-    const [result] = await connection.execute(
-      'DELETE FROM Enquete WHERE id_enquete = ?',
-      [id]
-    );
-    
-    if (result.affectedRows === 0) {
-      await connection.rollback();
-      return res.status(404).json({ message: 'Enquete não encontrada.' });
+    // Get data for logging before delete
+    const [oldData] = await connection.execute('SELECT * FROM Poll WHERE id_poll = ?', [id]);
+    if (oldData.length === 0) {
+        return res.status(404).json({ message: 'Poll not found.' });
     }
+
+    // Deletion is handled by CASCADE in the database (Poll_VoteOption and Vote)
+    const [result] = await connection.execute(
+      'DELETE FROM Poll WHERE id_poll = ?',
+      [id]
+    );
     
+    // Log Activity
+    await logActivity(id_user, 'Poll', id, 'Delete', oldData[0], null);
+
     await connection.commit();
-    res.json({ message: 'Enquete excluída com sucesso!' });
+    res.json({ message: 'Poll deleted successfully!' });
   } catch (error) {
     await connection.rollback();
-    console.error('Erro ao excluir enquete:', error);
-    res.status(500).json({ message: 'Erro ao excluir enquete.' });
+    console.error('Error deleting poll:', error);
+    res.status(500).json({ message: 'Error deleting poll.' });
   } finally {
     connection.release();
   }
 };
 
 /**
- * Criar uma Nova Enquete (Acesso Restrito a Admin)
+ * Create a New Poll (Admin Only)
  */
 export const createPoll = async (req, res) => {
-  const { titulo, descricao, data_inicio, data_fim, opcoes } = req.body;
-  const id_usuario = req.user.id; // ID do utilizador autenticado via middleware
+  const { title, description, start_date, end_date, options } = req.body;
+  const id_user = req.user.id;
 
-  // Validação: No mínimo duas opções de voto
-  if (!opcoes || opcoes.length < 2) {
-    return res.status(400).json({ message: 'Uma enquete deve ter no mínimo duas opções de voto.' });
+  if (!options || options.length < 2) {
+    return res.status(400).json({ message: 'A poll must have at least two vote options.' });
   }
 
   const connection = await db.getConnection();
   try {
-    // Inicia a transação SQL
     await connection.beginTransaction();
 
-    // 1. Insere a Enquete principal
-    const [enqueteResult] = await connection.execute(
-      'INSERT INTO Enquete (titulo, descricao, data_inicio, data_fim, id_usuario) VALUES (?, ?, ?, ?, ?)',
-      [titulo, descricao, data_inicio || new Date(), data_fim, id_usuario]
+    // 1. Insert Main Poll
+    const [pollResult] = await connection.execute(
+      'INSERT INTO Poll (title, description, start_date, end_date, id_user) VALUES (?, ?, ?, ?, ?)',
+      [title, description, start_date || new Date(), end_date, id_user]
     );
-    const id_enquete = enqueteResult.insertId;
+    const id_poll = pollResult.insertId;
 
-    // 2. Cria as opções de voto e vincula-as à enquete
-    for (const opt of opcoes) {
-      // Insere a definição da opção
-      const [optResult] = await connection.execute(
-        'INSERT INTO OpcaoVoto (designacao, descricao) VALUES (?, ?)',
-        [opt.designacao, opt.descricao || '']
-      );
-      const id_opcao_voto = optResult.insertId;
+    // 2. Create Options (if new) and Link to Poll
+    for (const opt of options) {
+      let id_option = opt.id_option;
 
-      // Cria o vínculo na tabela de junção
+      // If id_option is not provided, it's a new option
+      if (!id_option) {
+        const [optResult] = await connection.execute(
+          'INSERT INTO VoteOption (designation, description) VALUES (?, ?)',
+          [opt.designation, opt.description || '']
+        );
+        id_option = optResult.insertId;
+      }
+
       await connection.execute(
-        'INSERT INTO Enquete_Opcao_Voto (id_enquete, id_opcao_voto) VALUES (?, ?)',
-        [id_enquete, id_opcao_voto]
+        'INSERT INTO Poll_VoteOption (id_poll, id_option) VALUES (?, ?)',
+        [id_poll, id_option]
       );
     }
 
-    // Confirma todas as inserções
+    // 3. Log Activity
+    await logActivity(id_user, 'Poll', id_poll, 'Insert', null, { title, description, start_date, end_date, options_count: options.length });
+
     await connection.commit();
-    res.status(201).json({ message: 'Enquete publicada com sucesso!', id_enquete });
+    res.status(201).json({ message: 'Poll published successfully!', id_poll });
   } catch (error) {
-    // Em caso de erro, reverte todas as alterações parciais
     await connection.rollback();
-    console.error('Erro ao Criar Enquete:', error);
-    res.status(500).json({ message: 'Falha ao processar a criação da enquete.' });
+    console.error('Error Creating Poll:', error);
+    res.status(500).json({ message: 'Failed to process poll creation.' });
   } finally {
-    // Liberta a ligação de volta para a pool
     connection.release();
   }
 };
 
 /**
- * Listar Todas as Enquetes
+ * List All Polls
  */
 export const getPolls = async (req, res) => {
   try {
     const [polls] = await db.execute(`
       SELECT 
-        e.*, 
-        u.nome_usuario as criador,
-        fn_total_votos_enquete(e.id_enquete) as total_votos
-      FROM Enquete e 
-      JOIN Usuario u ON e.id_usuario = u.id_usuario 
-      ORDER BY e.data_inicio DESC
+        p.*, 
+        u.name as creator,
+        fn_poll_total_votes(p.id_poll) as total_votes
+      FROM Poll p 
+      JOIN User u ON p.id_user = u.id_user 
+      ORDER BY p.start_date DESC
     `);
     res.json(polls);
   } catch (error) {
-    console.error('Erro ao Listar Enquetes:', error);
-    res.status(500).json({ message: 'Não foi possível carregar as enquetes.' });
+    console.error('Error Listing Polls:', error);
+    res.status(500).json({ message: 'Could not load polls.' });
   }
 };
 
 /**
- * Obter Detalhes de uma Enquete Específica
+ * Get Specific Poll Details
  */
 export const getPollById = async (req, res) => {
   const { id } = req.params;
   try {
-    // Procura os dados da enquete e o nome do criador
     const [polls] = await db.execute(`
-      SELECT e.*, u.nome_usuario as criador, 
-             fn_total_votos_enquete(e.id_enquete) as total_votos
-      FROM Enquete e
-      JOIN Usuario u ON e.id_usuario = u.id_usuario
-      WHERE id_enquete = ?
+      SELECT p.*, u.name as creator, 
+             fn_poll_total_votes(p.id_poll) as total_votes
+      FROM Poll p
+      JOIN User u ON p.id_user = u.id_user
+      WHERE id_poll = ?
     `, [id]);
     
     if (polls.length === 0) {
-      return res.status(404).json({ message: 'Enquete não encontrada.' });
+      return res.status(404).json({ message: 'Poll not found.' });
     }
 
-    // Procura as opções associadas a esta enquete
     const [options] = await db.execute(`
-      SELECT ov.* 
-      FROM OpcaoVoto ov 
-      JOIN Enquete_Opcao_Voto eov ON ov.id_opcao_voto = eov.id_opcao_voto 
-      WHERE eov.id_enquete = ?
+      SELECT vo.*, pvo.id_poll_option 
+      FROM VoteOption vo 
+      JOIN Poll_VoteOption pvo ON vo.id_option = pvo.id_option 
+      WHERE pvo.id_poll = ?
     `, [id]);
 
-    res.json({ ...polls[0], opcoes: options });
+    res.json({ ...polls[0], options });
   } catch (error) {
-    console.error('Erro ao Obter Enquete:', error);
-    res.status(500).json({ message: 'Erro ao carregar detalhes da enquete.' });
+    console.error('Error Getting Poll:', error);
+    res.status(500).json({ message: 'Error loading poll details.' });
   }
 };

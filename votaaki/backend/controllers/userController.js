@@ -1,91 +1,62 @@
 /**
- * Controller de Usuários - VotaAki
+ * User Controller - VotaAki
  * 
- * Responsável pelo CRUD completo de usuários e gestão administrativa.
- * Utiliza views e functions do banco para performance otimizada.
+ * Responsible for complete User CRUD and administrative management.
+ * Utilizes views and functions for optimized performance.
  */
 
 import db from '../db/config.js';
 import bcrypt from 'bcryptjs';
+import { logActivity } from '../utils/logHelper.js';
 
 /**
- * Listar todos os usuários (Acesso Admin)
+ * List all users (Admin Access)
  */
 export const getUsers = async (req, res) => {
   try {
-    const { page = 1, limit = 10, search = '', status = 'all' } = req.query;
-    const offset = (page - 1) * limit;
+    const { search = '', status = 'all' } = req.query;
 
     let query = `
       SELECT 
-        id_usuario,
-        nome_usuario,
-        email_usuario,
-        tipo_usuario,
+        id_user,
+        name,
+        email,
+        user_type,
         status,
-        ultimo_login,
-        criado_em,
-        actualizado_em
-      FROM Usuario
+        last_login,
+        created_at,
+        updated_at
+      FROM User
       WHERE 1=1
     `;
     const params = [];
 
-    // Filtro por busca
     if (search) {
-      query += ` AND (nome_usuario LIKE ? OR email_usuario LIKE ?)`;
+      query += ` AND (name LIKE ? OR email LIKE ?)`;
       params.push(`%${search}%`, `%${search}%`);
     }
 
-    // Filtro por status
     if (status !== 'all') {
       query += ` AND status = ?`;
       params.push(status);
     }
 
-    query += ` ORDER BY criado_em DESC LIMIT ? OFFSET ?`;
-    params.push(parseInt(limit), offset);
+    query += ` ORDER BY created_at DESC`;
 
     const [users] = await db.execute(query, params);
+    return res.json(users);
 
-    // Contar total para paginação
-    let countQuery = `
-      SELECT COUNT(*) as total 
-      FROM Usuario 
-      WHERE 1=1
-    `;
-    const countParams = [];
-
-    if (search) {
-      countQuery += ` AND (nome_usuario LIKE ? OR email_usuario LIKE ?)`;
-      countParams.push(`%${search}%`, `%${search}%`);
-    }
-
-    if (status !== 'all') {
-      countQuery += ` AND status = ?`;
-      countParams.push(status);
-    }
-
-    const [countResult] = await db.execute(countQuery, countParams);
-    const total = countResult[0].total;
-
-    res.json({
-      users,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        total,
-        pages: Math.ceil(total / limit)
-      }
-    });
   } catch (error) {
-    console.error('Erro ao listar usuários:', error);
-    res.status(500).json({ message: 'Erro interno do servidor' });
+    console.error('Error listing users:', error);
+    return res.status(500).json({ 
+      message: 'Internal server error',
+      error: error.message
+    });
   }
 };
 
 /**
- * Obter usuário por ID (Acesso Admin)
+ * Get user by ID (Admin Access)
  */
 export const getUserById = async (req, res) => {
   try {
@@ -93,31 +64,31 @@ export const getUserById = async (req, res) => {
     
     const [users] = await db.execute(
       `SELECT 
-        id_usuario,
-        nome_usuario,
-        email_usuario,
-        tipo_usuario,
+        id_user,
+        name,
+        email,
+        user_type,
         status,
-        caminho_imagem,
-        ultimo_login,
-        criado_em,
-        actualizado_em
-      FROM Usuario 
-      WHERE id_usuario = ?`,
+        path_thumb,
+        last_login,
+        created_at,
+        updated_at
+      FROM User 
+      WHERE id_user = ?`,
       [id]
     );
 
     if (users.length === 0) {
-      return res.status(404).json({ message: 'Usuário não encontrado' });
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    // Estatísticas do usuário usando view
+    // User statistics (polls created)
     const [stats] = await db.execute(
       `SELECT 
-        COUNT(e.id_enquete) as total_enquetes_criadas,
-        SUM(CASE WHEN e.status = 'ativa' THEN 1 ELSE 0 END) as enquetes_ativas
-      FROM vw_enquetes_usuario 
-      WHERE id_usuario = ?`,
+        COUNT(id_poll) as total_polls_created,
+        SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active_polls
+      FROM Poll
+      WHERE id_user = ?`,
       [id]
     );
 
@@ -128,288 +99,252 @@ export const getUserById = async (req, res) => {
 
     res.json(user);
   } catch (error) {
-    console.error('Erro ao obter usuário:', error);
-    res.status(500).json({ message: 'Erro interno do servidor' });
+    console.error('Error getting user:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
 /**
- * Criar novo usuário (Acesso Admin)
+ * Create new user (Admin Access)
  */
 export const createUser = async (req, res) => {
+  const adminId = req.user.id;
   try {
     const { 
-      nome_usuario, 
-      email_usuario, 
-      senha_usuario, 
-      tipo_usuario = 'usuario',
-      status = 'ativo'
+      name, 
+      email, 
+      password, 
+      user_type = 'user',
+      status = 'active'
     } = req.body;
 
-    // Validações
-    if (!nome_usuario || !email_usuario || !senha_usuario) {
+    if (!name || !email || !password) {
       return res.status(400).json({ 
-        message: 'Nome, email e senha são obrigatórios' 
+        message: 'Name, email and password are required' 
       });
     }
 
-    if (!['admin', 'usuario'].includes(tipo_usuario)) {
-      return res.status(400).json({ 
-        message: 'Tipo de usuário inválido' 
-      });
-    }
-
-    // Verificar se email já existe
+    // Check if email already exists
     const [existingUser] = await db.execute(
-      'SELECT id_usuario FROM Usuario WHERE email_usuario = ?',
-      [email_usuario]
+      'SELECT id_user FROM User WHERE email = ?',
+      [email]
     );
 
     if (existingUser.length > 0) {
       return res.status(400).json({ 
-        message: 'Email já cadastrado' 
+        message: 'Email already registered' 
       });
     }
 
-    // Encriptar senha
     const saltRounds = 12;
-    const hashedPassword = await bcrypt.hash(senha_usuario, saltRounds);
+    const password_hash = await bcrypt.hash(password, saltRounds);
 
-    // Inserir usuário
     const [result] = await db.execute(
-      `INSERT INTO Usuario 
-        (nome_usuario, email_usuario, senha_usuario, tipo_usuario, status) 
+      `INSERT INTO User 
+        (name, email, password_hash, user_type, status) 
        VALUES (?, ?, ?, ?, ?)`,
-      [nome_usuario, email_usuario, hashedPassword, tipo_usuario, status]
+      [name, email, password_hash, user_type, status]
     );
 
+    // Activity Log
+    await logActivity(adminId, 'User', result.insertId, 'Insert', null, { name, email, user_type, status });
+
     res.status(201).json({
-      message: 'Usuário criado com sucesso',
+      message: 'User created successfully',
       user: {
-        id_usuario: result.insertId,
-        nome_usuario,
-        email_usuario,
-        tipo_usuario,
+        id: result.insertId,
+        name,
+        email,
+        type: user_type,
         status
       }
     });
   } catch (error) {
-    console.error('Erro ao criar usuário:', error);
-    res.status(500).json({ message: 'Erro interno do servidor' });
+    console.error('Error creating user:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
 /**
- * Atualizar usuário (Acesso Admin)
+ * Update user (Admin Access)
  */
 export const updateUser = async (req, res) => {
+  const adminId = req.user.id;
   try {
     const { id } = req.params;
     const { 
-      nome_usuario, 
-      email_usuario, 
-      tipo_usuario, 
+      name, 
+      email, 
+      user_type, 
       status,
-      caminho_imagem 
+      path_thumb 
     } = req.body;
 
-    // Verificar se usuário existe
-    const [existingUser] = await db.execute(
-      'SELECT id_usuario FROM Usuario WHERE id_usuario = ?',
+    const [oldData] = await db.execute(
+      'SELECT * FROM User WHERE id_user = ?',
       [id]
     );
 
-    if (existingUser.length === 0) {
-      return res.status(404).json({ message: 'Usuário não encontrado' });
+    if (oldData.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    // Verificar se email já existe para outro usuário
-    if (email_usuario) {
+    // Check email uniqueness
+    if (email) {
       const [emailCheck] = await db.execute(
-        'SELECT id_usuario FROM Usuario WHERE email_usuario = ? AND id_usuario != ?',
-        [email_usuario, id]
+        'SELECT id_user FROM User WHERE email = ? AND id_user != ?',
+        [email, id]
       );
 
       if (emailCheck.length > 0) {
         return res.status(400).json({ 
-          message: 'Email já está em uso por outro usuário' 
+          message: 'Email already in use by another user' 
         });
       }
     }
 
-    // Construir query dinâmica
     let updateFields = [];
     let updateValues = [];
 
-    if (nome_usuario) {
-      updateFields.push('nome_usuario = ?');
-      updateValues.push(nome_usuario);
+    if (name) {
+      updateFields.push('name = ?');
+      updateValues.push(name);
     }
-
-    if (email_usuario) {
-      updateFields.push('email_usuario = ?');
-      updateValues.push(email_usuario);
+    if (email) {
+      updateFields.push('email = ?');
+      updateValues.push(email);
     }
-
-    if (tipo_usuario && ['admin', 'usuario'].includes(tipo_usuario)) {
-      updateFields.push('tipo_usuario = ?');
-      updateValues.push(tipo_usuario);
+    if (user_type && ['admin', 'user'].includes(user_type)) {
+      updateFields.push('user_type = ?');
+      updateValues.push(user_type);
     }
-
-    if (status && ['ativo', 'inativo', 'banido'].includes(status)) {
+    if (status && ['active', 'inactive', 'banned'].includes(status)) {
       updateFields.push('status = ?');
       updateValues.push(status);
     }
-
-    if (caminho_imagem !== undefined) {
-      updateFields.push('caminho_imagem = ?');
-      updateValues.push(caminho_imagem);
+    if (path_thumb !== undefined) {
+      updateFields.push('path_thumb = ?');
+      updateValues.push(path_thumb);
     }
 
     if (updateFields.length === 0) {
-      return res.status(400).json({ 
-        message: 'Nenhum campo válido para atualizar' 
-      });
+      return res.status(400).json({ message: 'No fields to update' });
     }
 
     updateValues.push(id);
 
     const [result] = await db.execute(
-      `UPDATE Usuario SET ${updateFields.join(', ')} WHERE id_usuario = ?`,
+      `UPDATE User SET ${updateFields.join(', ')} WHERE id_user = ?`,
       updateValues
     );
 
-    res.json({
-      message: 'Usuário atualizado com sucesso',
-      affectedRows: result.affectedRows
-    });
+    // Activity Log
+    await logActivity(adminId, 'User', id, 'Update', oldData[0], req.body);
+
+    res.json({ message: 'User updated successfully' });
   } catch (error) {
-    console.error('Erro ao atualizar usuário:', error);
-    res.status(500).json({ message: 'Erro interno do servidor' });
+    console.error('Error updating user:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
 /**
- * Atualizar senha do usuário (Acesso Admin)
+ * Update user password (Admin Access)
  */
 export const updateUserPassword = async (req, res) => {
+  const adminId = req.user.id;
   try {
     const { id } = req.params;
-    const { senha_usuario } = req.body;
+    const { password } = req.body;
 
-    if (!senha_usuario) {
-      return res.status(400).json({ 
-        message: 'Senha é obrigatória' 
-      });
+    if (!password) {
+      return res.status(400).json({ message: 'Password is required' });
     }
 
-    // Verificar se usuário existe
-    const [existingUser] = await db.execute(
-      'SELECT id_usuario FROM Usuario WHERE id_usuario = ?',
-      [id]
-    );
-
-    if (existingUser.length === 0) {
-      return res.status(404).json({ message: 'Usuário não encontrado' });
+    const [existing] = await db.execute('SELECT id_user FROM User WHERE id_user = ?', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    // Encriptar nova senha
     const saltRounds = 12;
-    const hashedPassword = await bcrypt.hash(senha_usuario, saltRounds);
+    const password_hash = await bcrypt.hash(password, saltRounds);
 
-    const [result] = await db.execute(
-      'UPDATE Usuario SET senha_usuario = ? WHERE id_usuario = ?',
-      [hashedPassword, id]
-    );
+    await db.execute('UPDATE User SET password_hash = ? WHERE id_user = ?', [password_hash, id]);
 
-    res.json({
-      message: 'Senha atualizada com sucesso',
-      affectedRows: result.affectedRows
-    });
+    // Activity Log
+    await logActivity(adminId, 'User', id, 'Update', { password: 'HIDDEN' }, { password: 'CHANGED' });
+
+    res.json({ message: 'Password updated successfully' });
   } catch (error) {
-    console.error('Erro ao atualizar senha:', error);
-    res.status(500).json({ message: 'Erro interno do servidor' });
+    console.error('Error updating password:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
 /**
- * Excluir usuário (Acesso Admin)
+ * Delete user (Admin Access)
  */
 export const deleteUser = async (req, res) => {
+  const adminId = req.user.id;
   try {
     const { id } = req.params;
 
-    // Verificar se usuário existe
-    const [existingUser] = await db.execute(
-      'SELECT id_usuario FROM Usuario WHERE id_usuario = ?',
-      [id]
-    );
-
-    if (existingUser.length === 0) {
-      return res.status(404).json({ message: 'Usuário não encontrado' });
+    const [oldData] = await db.execute('SELECT * FROM User WHERE id_user = ?', [id]);
+    if (oldData.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    // Verificar se não é o último admin
+    // Protect last active admin
     const [adminCount] = await db.execute(
-      `SELECT COUNT(*) as count 
-       FROM Usuario 
-       WHERE tipo_usuario = 'admin' AND status = 'ativo'`
+      "SELECT COUNT(*) as count FROM User WHERE user_type = 'admin' AND status = 'active'"
     );
 
-    if (adminCount[0].count <= 1 && existingUser[0].tipo_usuario === 'admin') {
-      return res.status(400).json({ 
-        message: 'Não é possível excluir o último administrador ativo' 
-      });
+    if (adminCount[0].count <= 1 && oldData[0].user_type === 'admin') {
+      return res.status(400).json({ message: 'Cannot delete the last active administrator' });
     }
 
-    const [result] = await db.execute(
-      'DELETE FROM Usuario WHERE id_usuario = ?',
-      [id]
-    );
+    await db.execute('DELETE FROM User WHERE id_user = ?', [id]);
 
-    res.json({
-      message: 'Usuário excluído com sucesso',
-      affectedRows: result.affectedRows
-    });
+    // Activity Log
+    await logActivity(adminId, 'User', id, 'Delete', oldData[0], null);
+
+    res.json({ message: 'User deleted successfully' });
   } catch (error) {
-    console.error('Erro ao excluir usuário:', error);
-    res.status(500).json({ message: 'Erro interno do servidor' });
+    console.error('Error deleting user:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
 /**
- * Obter estatísticas dos usuários (Dashboard)
+ * Get user stats (Dashboard)
  */
 export const getUserStats = async (req, res) => {
   try {
-    // Estatísticas gerais usando queries otimizadas
     const [stats] = await db.execute(`
       SELECT 
-        COUNT(*) as total_usuarios,
-        SUM(CASE WHEN tipo_usuario = 'admin' THEN 1 ELSE 0 END) as total_admins,
-        SUM(CASE WHEN tipo_usuario = 'usuario' THEN 1 ELSE 0 END) as total_usuarios_normais,
-        SUM(CASE WHEN status = 'ativo' THEN 1 ELSE 0 END) as usuarios_ativos,
-        SUM(CASE WHEN status = 'inativo' THEN 1 ELSE 0 END) as usuarios_inativos,
-        SUM(CASE WHEN status = 'banido' THEN 1 ELSE 0 END) as usuarios_banidos,
-        SUM(CASE WHEN ultimo_login >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 ELSE 0 END) as usuarios_ultima_semana,
-        SUM(CASE WHEN ultimo_login >= DATE_SUB(NOW(), INTERVAL 1 DAY) THEN 1 ELSE 0 END) as usuarios_ultima_24h,
-        SUM(CASE WHEN criado_em >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) as novos_30_dias
-      FROM Usuario
+        COUNT(*) as total_users,
+        SUM(CASE WHEN user_type = 'admin' THEN 1 ELSE 0 END) as total_admins,
+        SUM(CASE WHEN user_type = 'user' THEN 1 ELSE 0 END) as total_regular_users,
+        SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active_users,
+        SUM(CASE WHEN status = 'inactive' THEN 1 ELSE 0 END) as inactive_users,
+        SUM(CASE WHEN status = 'banned' THEN 1 ELSE 0 END) as banned_users,
+        SUM(CASE WHEN last_login >= DATE_SUB(NOW(), INTERVAL 7 DAY) THEN 1 ELSE 0 END) as active_last_week,
+        SUM(CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) as new_30_days
+      FROM User
     `);
 
-    // Usuários mais ativos (com mais enquetes)
     const [topUsers] = await db.execute(`
       SELECT 
-        u.id_usuario,
-        u.nome_usuario,
-        u.email_usuario,
-        COUNT(e.id_enquete) as total_enquetes,
-        MAX(u.ultimo_login) as ultimo_login
-      FROM Usuario u
-      LEFT JOIN Enquete e ON u.id_usuario = e.id_usuario
-      WHERE u.status = 'ativo'
-      GROUP BY u.id_usuario
-      ORDER BY total_enquetes DESC, u.ultimo_login DESC
+        u.id_user,
+        u.name,
+        u.email,
+        COUNT(p.id_poll) as total_polls,
+        u.last_login
+      FROM User u
+      LEFT JOIN Poll p ON u.id_user = p.id_user
+      WHERE u.status = 'active'
+      GROUP BY u.id_user
+      ORDER BY total_polls DESC, u.last_login DESC
       LIMIT 5
     `);
 
@@ -418,7 +353,187 @@ export const getUserStats = async (req, res) => {
       topUsers
     });
   } catch (error) {
-    console.error('Erro ao obter estatísticas:', error);
-    res.status(500).json({ message: 'Erro interno do servidor' });
+    console.error('Error fetching user stats:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+/**
+ * Get logged-in user profile
+ */
+export const getProfile = async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const [users] = await db.execute(
+      'SELECT id_user, name, email, user_type, status, path_thumb, created_at FROM User WHERE id_user = ?',
+      [userId]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(users[0]);
+  } catch (error) {
+    console.error('Error getting profile:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+/**
+ * Update logged-in user profile
+ */
+export const updateProfile = async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const { name, email, currentPassword, newPassword } = req.body;
+    let path_thumb = req.file ? `/uploads/profiles/${req.file.filename}` : undefined;
+
+    // Get current user data
+    const [users] = await db.execute('SELECT * FROM User WHERE id_user = ?', [userId]);
+    const user = users[0];
+
+    if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+    }
+
+    let updateFields = [];
+    let updateValues = [];
+
+    if (name) {
+      updateFields.push('name = ?');
+      updateValues.push(name);
+    }
+
+    if (email && email !== user.email) {
+      const [emailCheck] = await db.execute(
+        'SELECT id_user FROM User WHERE email = ? AND id_user != ?',
+        [email, userId]
+      );
+      if (emailCheck.length > 0) {
+        return res.status(400).json({ message: 'Email already in use' });
+      }
+      updateFields.push('email = ?');
+      updateValues.push(email);
+    }
+
+    if (path_thumb) {
+      updateFields.push('path_thumb = ?');
+      updateValues.push(path_thumb);
+    }
+
+    // Password change logic
+    if (newPassword) {
+      if (!currentPassword) {
+          return res.status(400).json({ message: 'Current password is required to change password' });
+      }
+      const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
+      if (!isMatch) {
+          return res.status(400).json({ message: 'Current password incorrect' });
+      }
+      const salt = await bcrypt.genSalt(10);
+      const password_hash = await bcrypt.hash(newPassword, salt);
+      updateFields.push('password_hash = ?');
+      updateValues.push(password_hash);
+    }
+
+    if (updateFields.length === 0) {
+      return res.status(400).json({ message: 'No fields to update' });
+    }
+
+    updateValues.push(userId);
+    await db.execute(
+      `UPDATE User SET ${updateFields.join(', ')} WHERE id_user = ?`,
+      updateValues
+    );
+
+    res.json({ 
+        message: 'Profile updated successfully',
+        image: path_thumb // Return new image path to update frontend state
+    });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+/**
+ * Get all login logs (Admin Access)
+ */
+export const getLoginLogs = async (req, res) => {
+  try {
+    const { userId, startDate, endDate } = req.query;
+    let query = `
+      SELECT ll.*, u.name as user_name, u.email as user_email 
+      FROM LoginLog ll 
+      JOIN User u ON ll.id_user = u.id_user 
+      WHERE 1=1
+    `;
+    const params = [];
+
+    if (userId) {
+      query += ' AND ll.id_user = ?';
+      params.push(userId);
+    }
+    if (startDate) {
+      query += ' AND ll.login_time >= ?';
+      params.push(startDate);
+    }
+    if (endDate) {
+      query += ' AND ll.login_time <= ?';
+      params.push(endDate);
+    }
+
+    query += ' ORDER BY ll.login_time DESC LIMIT 500';
+
+    const [logs] = await db.execute(query, params);
+    res.json(logs);
+  } catch (error) {
+    console.error('Error fetching login logs:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+/**
+ * Get all activity logs (Admin Access)
+ */
+export const getActivityLogs = async (req, res) => {
+  try {
+    const { userId, tableName, action, startDate, endDate } = req.query;
+    let query = `
+      SELECT al.*, u.name as user_name 
+      FROM ActivityLog al 
+      JOIN User u ON al.id_user = u.id_user 
+      WHERE 1=1
+    `;
+    const params = [];
+
+    if (userId) {
+      query += ' AND al.id_user = ?';
+      params.push(userId);
+    }
+    if (tableName) {
+      query += ' AND al.table_name = ?';
+      params.push(tableName);
+    }
+    if (action) {
+      query += ' AND al.action = ?';
+      params.push(action);
+    }
+    if (startDate) {
+      query += ' AND al.created_at >= ?';
+      params.push(startDate);
+    }
+    if (endDate) {
+      query += ' AND al.created_at <= ?';
+      params.push(endDate);
+    }
+
+    query += ' ORDER BY al.created_at DESC LIMIT 500';
+
+    const [logs] = await db.execute(query, params);
+    res.json(logs);
+  } catch (error) {
+    console.error('Error fetching activity logs:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };

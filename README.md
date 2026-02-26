@@ -1,58 +1,36 @@
-# 🗳️ Sistema de Enquetes e Votação Online
+# 🗳️ VotaAki - Sistema de Enquetes e Votação Online
 
 ![Status](https://img.shields.io/badge/status-em%20desenvolvimento-yellow)
 ![React](https://img.shields.io/badge/React-Front--end-blue?logo=react)
-![Django](https://img.shields.io/badge/Django-Back--end-darkgreen?logo=django)
+![Node.js](https://img.shields.io/badge/Node.js-Back--end-green?logo=node.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-Frontend-blue?logo=typescript)
 ![MySQL](https://img.shields.io/badge/MySQL-Database-orange?logo=mysql)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 ---
 
 ## 📌 Sobre o Projeto
-O **Sistema de Enquetes e Votação Online** é uma aplicação web desenvolvida para permitir a **criação, gestão e participação em enquetes**, garantindo **controle de período**, **voto único por utilizador** e **exibição clara dos resultados**.
+O **VotaAki** é uma plataforma moderna para criação e participação em enquetes online. O sistema foca em **segurança, performance e estética premium**, garantindo que cada utilizador tenha uma experiência fluida e cada voto seja contabilizado com integridade.
 
-O projeto foi idealizado para contextos como:
-- Instituições educacionais  
-- Organizações e associações  
-- Votações internas e participativas  
-
-Prioriza:
-- ✔️ Simplicidade de uso  
-- ✔️ Integridade dos votos  
-- ✔️ Separação clara de permissões  
+Ideal para:
+- Instituições de ensino (Grêmios, votações de classe)
+- Organizações e associações
+- Decisões participativas em pequenas e médias empresas
 
 ---
 
 ## 🚀 Funcionalidades Principais
 
 ### 👤 Para Utilizadores
-- 🔐 **Registro e Autenticação** – criação de conta e login seguro  
-- 🗳️ **Participação em Enquetes** – votação em enquetes ativas  
-- 🚫 **Voto Único** – apenas um voto por utilizador em cada enquete  
-- 📊 **Visualização de Resultados**:
-  - Número de votos por opção  
-  - Percentual de votos por opção  
+- 🔐 **Autenticação Segura** – Login e Registro com proteção JWT.
+- 🗳️ **Participação em Enquetes** – Listagem moderna de enquetes ativas.
+- 🚫 **Voto Único** – Proteção rigorosa contra votos duplicados (um por utilizador/enquete).
+- 📊 **Visualização de Resultados** – Feedback imediato após a votação com gráficos e contadores.
 
----
-
-### 🛡️ Para Administradores
-- 📝 **Criação de Enquetes** – acesso exclusivo para administradores  
-- ⚙️ **Gestão de Opções de Voto** – adicionar, editar ou remover opções  
-- 🕒 **Controle de Período de Votação**:
-  - Definição de data/hora de início  
-  - Definição de data/hora de encerramento  
-- 📈 **Acompanhamento dos Resultados**  
-
----
-
-## 🔐 Segurança e Integridade
-- Autenticação de utilizadores
-- Controle de permissões (utilizador x administrador)
-- Validação automática do período de votação
-- Bloqueio de votos duplicados
-- Uso de variáveis de ambiente para dados sensíveis (`.env`)
-
-> ⚠️ Sistema indicado para **votações institucionais ou educacionais**, não substituindo eleições oficiais.
+### 🛡️ Para Administradores (Dashboard Admin)
+- 📝 **Criação de Enquetes** – Interface intuitiva para definir títulos, descrições e períodos.
+- 🕒 **Controle de Período** – Automação de abertura e encerramento de votações.
+- 📈 **Gestão de Opções** – Controle total sobre as alternativas de cada enquete.
 
 ---
 
@@ -60,22 +38,42 @@ Prioriza:
 
 | Camada | Tecnologias |
 |------|-------------|
-| 🎨 Front-end | React.js, HTML5, CSS3, JavaScript |
-| ⚙️ Back-end | Django |
-| 🗄️ Banco de Dados | MySQL |
-| 🔧 Versionamento | Git & GitHub |
+| 🎨 **Frontend** | React (Vite), TypeScript, CSS Modules, React Icons |
+| ⚙️ **Backend** | Node.js, Express, ES Modules |
+| 🗄️ **Banco de Dados** | MySQL (com Triggers e Views para performance) |
+| 🔐 **Segurança** | JWT (JSON Web Tokens), Validação SQL |
+
+---
+
+## 🛠️ Configuração do Ambiente
+
+### Pré-requisitos
+- Node.js (v18+)
+- MySQL
+
+### Backend
+1. Entre na pasta `backend`: `cd votaaki/backend`
+2. Instale as dependências: `npm install`
+3. Configure o arquivo `.env` com suas credenciais de banco de dados e `JWT_SECRET`.
+4. Importe o script SQL em `docs/database/scripts/ModeloLogico.sql`.
+5. Inicie o servidor: `npm start`
+
+### Frontend
+1. Entre na pasta `frontend`: `cd votaaki/frontend`
+2. Instale as dependências: `npm install`
+3. Inicie a aplicação: `npm run dev`
 
 ---
 
 ## 📂 Estado do Projeto
-🚧 **Em desenvolvimento**  
-Funcionalidades principais estão sendo implementadas e aprimoradas de forma incremental.
+🚧 **Finalização em progresso (Sprint de 8 Horas)**
 
----
-
-## 🤝 Contribuição
-Sugestões, correções e melhorias são bem-vindas!  
-Sinta-se à vontade para abrir uma *issue* ou enviar um *pull request*.
+- [x] Arquitetura de Banco de Dados
+- [x] Core Backend (Autenticação e Enquetes)
+- [x] UI Principal (Landing Page)
+- [x] Fluxo de Votação (Core Feature)
+- [ ] Refinamento do Dashboard Admin
+- [ ] Exportação de Relatórios
 
 ---
 
@@ -85,5 +83,5 @@ Este projeto está sob a licença **MIT**.
 ---
 
 ## 👤 Autor
-Desenvolvido por **Gabriel**  
-💻 Desenvolvedor de aplicações web focado em sistemas seguros e bem estruturados.
+Desenvolvido por **Gabriel** e **Antigravity AI**.
+💻 Focado em criar soluções digitais que unem performance e design de alto nível.

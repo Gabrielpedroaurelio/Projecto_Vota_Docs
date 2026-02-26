@@ -1,44 +1,38 @@
-/**
- * Rotas de Opções de Voto - VotaAki
- * 
- * Define os endpoints para gestão individual das opções de voto.
- */
 
 import express from 'express';
 import * as optionController from '../controllers/optionController.js';
-import { authMiddleware } from '../middleware/authMiddleware.js';
-import { roleMiddleware } from '../middleware/roleMiddleware.js';
+import { authenticateToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 /**
  * @route GET /api/options
- * @desc  Lista todas as opções de voto de todas as enquetes.
+ * @desc  List all vote options (Admin Only)
  */
-router.get('/', authMiddleware, optionController.getOptions);
+router.get('/', authenticateToken, optionController.getOptions);
 
 /**
  * @route GET /api/options/poll/:id
- * @desc  Lista todas as opções de uma enquete específica.
+ * @desc  Get all options linked to a specific poll
  */
-router.get('/poll/:id', authMiddleware, optionController.getOptionsByPoll);
+router.get('/poll/:id', optionController.getOptionsByPoll);
 
 /**
  * @route POST /api/options
- * @desc  Cria uma nova opção de voto (Acesso Admin).
+ * @desc  Create a new vote option and link it to a poll
  */
-router.post('/', authMiddleware, roleMiddleware('admin'), optionController.createOption);
+router.post('/', authenticateToken, optionController.createOption);
 
 /**
  * @route PUT /api/options/:id
- * @desc  Atualiza uma opção de voto existente (Acesso Admin).
+ * @desc  Update a vote option
  */
-router.put('/:id', authMiddleware, roleMiddleware('admin'), optionController.updateOption);
+router.put('/:id', authenticateToken, optionController.updateOption);
 
 /**
  * @route DELETE /api/options/:id
- * @desc  Exclui uma opção de voto (Acesso Admin).
+ * @desc  Delete a vote option
  */
-router.delete('/:id', authMiddleware, roleMiddleware('admin'), optionController.deleteOption);
+router.delete('/:id', authenticateToken, optionController.deleteOption);
 
 export default router;

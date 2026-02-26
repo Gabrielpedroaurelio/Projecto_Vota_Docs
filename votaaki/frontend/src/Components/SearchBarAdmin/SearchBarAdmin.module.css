@@ -1,54 +1,67 @@
-* {
-    box-sizing: border-box;
-}
-
-.CardSeachBar {
-    background-color: rgb(255, 255, 255);
-    margin-left: 50px;
+.container {
+    padding: 1.5rem 5%;
     display: flex;
+    justify-content: center;
     align-items: center;
-    justify-content: flex-end;
-    padding: 10px 5px 5px 5px;
+    background: transparent;
 }
 
-.CardSeachBar>div {
-
-    border: 1px solid #858585;
-    display: flex;
-    align-items: center;
-    border-radius: 5px;
-    
-    overflow: hidden;
-}
-
-.CardSeachBar .SearchBar {
-    display: flex;
-    align-items: center;
-   max-width: 300px;
-    padding: 5px;
-
-}
-
-.CardSeachBar button {
-
-    padding: 8px;
-
-
-    cursor: pointer;
-    align-self: center;
-
-}
-
-.CardSeachBar .SearchBar svg {
-    color: #9f9f9f;
-}
-
-.SearchBar input {
-    color: #858585;
+.searchWrapper {
+    position: relative;
     width: 100%;
-    font-size: 14px;
+    max-width: 600px;
+    display: flex;
+    align-items: center;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 1.25rem;
+    color: var(--color-text-muted);
+    font-size: 1.25rem;
+    pointer-events: none;
+    transition: color 0.2s ease;
+}
+
+.searchInput {
+    width: 100%;
+    padding: 1rem 1.25rem 1rem 3.5rem;
+    background: var(--color-bg-white);
+    border: 1px solid var(--color-border-light);
+    border-radius: 16px;
+    font-size: 0.938rem;
+    color: var(--color-text-primary);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.searchInput::placeholder {
+    color: var(--color-text-muted);
+}
+
+.searchInput:focus {
     outline: none;
-    padding-left: 10px;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px var(--color-accent-light), var(--shadow-md);
+    transform: translateY(-1px);
+}
 
+.searchInput:focus + .searchIcon {
+    color: var(--color-primary);
+}
 
+@media (max-width: 640px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    .searchInput {
+        font-size: 0.875rem;
+        padding: 0.875rem 1rem 0.875rem 3rem;
+    }
+    
+    .searchIcon {
+        left: 1rem;
+        font-size: 1.1rem;
+    }
 }

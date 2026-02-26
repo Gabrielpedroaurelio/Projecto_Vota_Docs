@@ -1,35 +1,36 @@
 /**
- * Middleware de Autenticação JWT
+ * JWT Authentication Middleware
  * 
- * Verifica se o token enviado nos headers é válido e autentica a requisição,
- * anexando os dados do utilizador ao objeto req.
+ * Verifies if the token sent in headers is valid and authenticates the request,
+ * attaching user data to the req object.
  */
 
 import jwt from 'jsonwebtoken';
 
-const authMiddleware = (req, res, next) => {
-  // Tenta obter o token de diferentes headers comuns
+/**
+ * Main authentication middleware
+ */
+export const authenticateToken = (req, res, next) => {
+  // Extract token from common headers
   const token = req.header('x-auth-token') || req.header('Authorization')?.replace('Bearer ', '');
 
-  // Se não houver token, retorna erro de não autorizado
   if (!token) {
-    return res.status(401).json({ message: 'Sem token, autorização negada' });
+    return res.status(401).json({ message: 'No token provided, authorization denied.' });
   }
 
   try {
-    // Verifica e descodifica o token usando a chave secreta
+    // Verify and decode token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
-    // Anexa os dados do utilizador descodificados à requisição
+    // Attach decoded user data (id, type) to request
     req.user = decoded;
     
     next();
   } catch (error) {
-    // Se o token for inválido ou estiver expirado
-    res.status(401).json({ message: 'Token não é válido' });
+    res.status(401).json({ message: 'Invalid or expired token.' });
   }
 };
 
-// Exportação nomeada para compatibilidade
-export { authMiddleware };
-export default authMiddleware;
+// Aliases for compatibility
+export const authMiddleware = authenticateToken;
+export default authenticateToken;

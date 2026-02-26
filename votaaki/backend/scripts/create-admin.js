@@ -24,7 +24,7 @@ async function createAdmin() {
 
   try {
     // 1. Verifica se já existe um administrador com este email
-    const [existing] = await db.execute('SELECT * FROM Usuario WHERE email_usuario = ?', [email]);
+    const [existing] = await db.execute('SELECT * FROM User WHERE email = ?', [email]);
     if (existing.length > 0) {
       console.log('Informação: O utilizador administrador já se encontra registado.');
       process.exit(0);
@@ -36,8 +36,8 @@ async function createAdmin() {
 
     // 3. Insere o administrador com privilégios de 'admin'
     await db.execute(
-      'INSERT INTO Usuario (nome_usuario, email_usuario, senha_usuario, tipo_usuario, status) VALUES (?, ?, ?, ?, ?)',
-      [nome, email, hashedPassword, 'admin', 'ativo']
+      'INSERT INTO User (name, email, password_hash, user_type, status) VALUES (?, ?, ?, ?, ?)',
+      [nome, email, hashedPassword, 'admin', 'active']
     );
 
     console.log('✅ Sucesso: Administrador criado com as seguintes credenciais:');

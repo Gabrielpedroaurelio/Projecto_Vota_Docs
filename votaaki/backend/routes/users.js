@@ -1,46 +1,62 @@
-/**
- * Rotas de Usuários - VotaAki
- * 
- * Todas as rotas requerem autenticação e privilégios de administrador.
- */
 
 import express from 'express';
-import { authMiddleware } from '../middleware/authMiddleware.js';
-import { roleMiddleware } from '../middleware/roleMiddleware.js';
-import {
-  getUsers,
-  getUserById,
-  createUser,
-  updateUser,
-  updateUserPassword,
-  deleteUser,
-  getUserStats
-} from '../controllers/userController.js';
+import * as userController from '../controllers/userController.js';
+import { authenticateToken } from '../middleware/authMiddleware.js';
+import { uploadProfileImage } from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
 
-// Aplicar middleware de autenticação em todas as rotas
-router.use(authMiddleware);
+// Publicly available profile (if logged in)
+router.get('/me/profile', authenticateToken, userController.getProfile);
+router.put('/me/profile', authenticateToken, uploadProfileImage.single('image'), userController.updateProfile);
 
-// Listar todos os usuários (Admin only)
-router.get('/', roleMiddleware('admin'), getUsers);
+// All other user routes require authentication (Admin)
+router.use(authenticateToken);
 
-// Obter estatísticas dos usuários (Admin only)
-router.get('/stats', roleMiddleware('admin'), getUserStats);
+/**
+ * @route GET /api/users
+ * @desc  List all users with pagination and filters
+ */
+router.get('/', userController.getUsers);
 
-// Obter usuário por ID (Admin only)
-router.get('/:id', roleMiddleware('admin'), getUserById);
+/**
+ * @route GET /api/users/stats
+ * @desc  Get user management statistics
+ */
+router.get('/stats', userController.getUserStats);
 
-// Criar novo usuário (Admin only)
-router.post('/', roleMiddleware('admin'), createUser);
+/**
+ * @route GET /api/users/:id
+ * @desc  Get specific user profile and stats
+ */
+router.get('/:id', userController.getUserById);
 
-// Atualizar usuário (Admin only)
-router.put('/:id', roleMiddleware('admin'), updateUser);
+/**
+ * @route POST /api/users
+ * @desc  Create a new user manually
+ */
+router.post('/', userController.createUser);
 
-// Atualizar senha do usuário (Admin only)
-router.put('/:id/password', roleMiddleware('admin'), updateUserPassword);
+/**
+ * @route PUT /api/users/:id
+ * @desc  Update user general information
+ */
+router.put('/:id', userController.updateUser);
 
-// Excluir usuário (Admin only)
-router.delete('/:id', roleMiddleware('admin'), deleteUser);
+/**
+ * @route PATCH /api/users/:id/password
+ * @desc  Update a user password
+ */
+router.patch('/:id/password', userController.updateUserPassword);
+
+/**
+ * @route DELETE /api/users/:id
+ * @desc  Permanently delete a user
+ */
+router.delete('/:id', userController.deleteUser);
+
+// Administrative Log Routes
+router.get('/admin/logs/login', userController.getLoginLogs);
+router.get('/admin/logs/activity', userController.getActivityLogs);
 
 export default router;
