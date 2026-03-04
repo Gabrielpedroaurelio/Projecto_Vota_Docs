@@ -65,18 +65,6 @@ Ideal para:
 
 ---
 
-## 📂 Estado do Projeto
-🚧 **Finalização em progresso (Sprint de 8 Horas)**
-
-- [x] Arquitetura de Banco de Dados
-- [x] Core Backend (Autenticação e Enquetes)
-- [x] UI Principal (Landing Page)
-- [x] Fluxo de Votação (Core Feature)
-- [ ] Refinamento do Dashboard Admin
-- [ ] Exportação de Relatórios
-
----
-
 ## 📄 Licença
 Este projeto está sob a licença **MIT**.
 
