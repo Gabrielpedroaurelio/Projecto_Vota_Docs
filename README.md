@@ -55,7 +55,7 @@ Ideal para:
 1. Entre na pasta `backend`: `cd votaaki/backend`
 2. Instale as dependências: `npm install`
 3. Configure o arquivo `.env` com suas credenciais de banco de dados e `JWT_SECRET`.
-4. Importe o script SQL em `docs/database/scripts/ModeloLogico.sql`.
+4. Importe o script SQL em `docs/database/scripts/ModeloFisico.sql`.
 5. Inicie o servidor: `npm start`
 
 ### Frontend
