@@ -83,7 +83,11 @@ CREATE TABLE Vote (
     id_user INT NOT NULL,
     id_poll_option INT NOT NULL,
     vote_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-
+    id_poll INT,
+    constraint fk_vote_poll
+        FOREIGN KEY (id_poll)
+        REFERENCES Poll(id_poll)
+        ON DELETE CASCADE,
     CONSTRAINT fk_vote_user
         FOREIGN KEY (id_user)
         REFERENCES User(id_user)
