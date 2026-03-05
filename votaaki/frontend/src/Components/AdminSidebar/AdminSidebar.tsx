@@ -1,8 +1,8 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../Hooks/useAuth';
-import { 
-    HiOutlineChartPie, 
-    HiOutlineUsers, 
+import {
+    HiOutlineChartPie,
+    HiOutlineUsers,
     HiOutlineListBullet,
     HiOutlineCheckCircle,
     HiOutlineDocumentChartBar,
@@ -29,14 +29,14 @@ export default function AdminSidebar() {
         <aside className={styles.sidebar}>
             <div className={styles.logo}>
                 <img src="/logo_votaaki.png" alt="VotaAki" />
-                <span>Admin Panel</span>
+                <span>Painel Admin</span>
             </div>
 
             <nav className={styles.nav}>
                 {menuItems.map((item) => (
-                    <NavLink 
-                        key={item.path} 
-                        to={item.path} 
+                    <NavLink
+                        key={item.path}
+                        to={item.path}
                         className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}
                     >
                         <span className={styles.icon}>{item.icon}</span>

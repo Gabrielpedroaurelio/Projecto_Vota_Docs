@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { HiOutlineLockClosed, HiOutlineUser, HiOutlineArrowRight } from 'react-icons/hi2';
 import { useNavigate } from 'react-router-dom';
-import {CiVoicemail} from 'react-icons/ci'
+import { CiVoicemail } from 'react-icons/ci'
 import { useAuth } from '../../../Hooks/useAuth';
 import styles from './Auth.module.css';
 
@@ -15,7 +15,7 @@ export default function Auth() {
             navigate('/admin/dashboard');
         }
     }, [user, navigate]);
-    
+
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -34,7 +34,7 @@ export default function Auth() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (isSignup) {
             if (formData.password !== formData.confirmPassword) {
                 setError('As senhas não coincidem');
@@ -60,7 +60,7 @@ export default function Auth() {
     return (
         <div className={styles.authPage}>
             <div className={`${styles.container} ${isSignup ? styles.isSignup : ''}`}>
-                
+
                 <div className={styles.formSection}>
                     <h2 className={styles.title}>{isSignup ? 'Criar Conta' : 'Bem-vindo de volta'}</h2>
                     <p className={styles.subtitle}>
@@ -73,10 +73,10 @@ export default function Auth() {
                         {isSignup && (
                             <div className={styles.inputGroup}>
                                 <label><HiOutlineUser /> Nome Completo</label>
-                                <input 
+                                <input
                                     className={styles.inputField}
-                                    type="text" 
-                                    name="name" 
+                                    type="text"
+                                    name="name"
                                     placeholder="Seu nome"
                                     value={formData.name}
                                     onChange={handleChange}
@@ -87,10 +87,10 @@ export default function Auth() {
 
                         <div className={styles.inputGroup}>
                             <label><CiVoicemail /> Email</label>
-                            <input 
+                            <input
                                 className={styles.inputField}
-                                type="email" 
-                                name="email" 
+                                type="email"
+                                name="email"
                                 placeholder="seu@email.com"
                                 value={formData.email}
                                 onChange={handleChange}
@@ -100,10 +100,10 @@ export default function Auth() {
 
                         <div className={styles.inputGroup}>
                             <label><HiOutlineLockClosed /> Senha</label>
-                            <input 
+                            <input
                                 className={styles.inputField}
-                                type="password" 
-                                name="password" 
+                                type="password"
+                                name="password"
                                 placeholder="••••••••"
                                 value={formData.password}
                                 onChange={handleChange}
@@ -114,10 +114,10 @@ export default function Auth() {
                         {isSignup && (
                             <div className={styles.inputGroup}>
                                 <label><HiOutlineLockClosed /> Confirmar Senha</label>
-                                <input 
+                                <input
                                     className={styles.inputField}
-                                    type="password" 
-                                    name="confirmPassword" 
+                                    type="password"
+                                    name="confirmPassword"
                                     placeholder="••••••••"
                                     value={formData.confirmPassword}
                                     onChange={handleChange}
@@ -127,10 +127,10 @@ export default function Auth() {
                         )}
 
                         <button className={styles.submitBtn} disabled={loading}>
-                            {loading ? 'Processando...' : (
-                                <>
+                            {loading ? <span>Processando...</span> : (
+                                <span>
                                     {isSignup ? 'Registrar' : 'Entrar'} <HiOutlineArrowRight />
-                                </>
+                                </span>
                             )}
                         </button>
                     </form>

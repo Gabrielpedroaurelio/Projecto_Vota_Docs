@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { 
-    HiOutlineShieldCheck, 
-    HiOutlineClock, 
-    HiOutlineFunnel, 
+import {
+    HiOutlineShieldCheck,
+    HiOutlineClock,
+    HiOutlineFunnel,
     HiOutlineArrowDownTray,
     HiOutlineUser,
     HiOutlineDevicePhoneMobile,
@@ -35,7 +35,7 @@ export default function History() {
     const fetchData = useCallback(async () => {
         try {
             setLoading(true);
-            const data = activeTab === 'logins' 
+            const data = activeTab === 'logins'
                 ? await adminService.getLoginLogs(filters)
                 : await adminService.getActivityLogs(filters);
             setLogs(data);
@@ -137,13 +137,13 @@ export default function History() {
             </header>
 
             <div className={styles.tabs}>
-                <button 
+                <button
                     className={`${styles.tab} ${activeTab === 'logins' ? styles.activeTab : ''}`}
                     onClick={() => setActiveTab('logins')}
                 >
                     <HiOutlineShieldCheck /> Histórico de Acessos
                 </button>
-                <button 
+                <button
                     className={`${styles.tab} ${activeTab === 'activities' ? styles.activeTab : ''}`}
                     onClick={() => setActiveTab('activities')}
                 >
@@ -173,11 +173,11 @@ export default function History() {
                     <>
                         <div className={styles.filterGroup}>
                             <label><HiOutlineMagnifyingGlass /> Tabela</label>
-                            <input 
-                                placeholder="Ex: Poll, User" 
-                                name="tableName" 
-                                value={filters.tableName} 
-                                onChange={handleFilterChange} 
+                            <input
+                                placeholder="Ex: Poll, User"
+                                name="tableName"
+                                value={filters.tableName}
+                                onChange={handleFilterChange}
                             />
                         </div>
                         <div className={styles.filterGroup}>
@@ -246,8 +246,8 @@ export default function History() {
                                             </td>
                                             <td>
                                                 <div className={styles.timeInfo}>
-                                                    <span>In: {new Date(log.login_time).toLocaleString()}</span>
-                                                    {log.logout_time && <small>Out: {new Date(log.logout_time).toLocaleString()}</small>}
+                                                    <span>Entrada: {new Date(log.login_time).toLocaleString()}</span>
+                                                    {log.logout_time && <small>Saída: {new Date(log.logout_time).toLocaleString()}</small>}
                                                 </div>
                                             </td>
                                             <td>
@@ -272,7 +272,7 @@ export default function History() {
                                             </td>
                                             <td>{new Date(log.created_at).toLocaleString()}</td>
                                             <td>
-                                                <button 
+                                                <button
                                                     className={styles.viewDataBtn}
                                                     onClick={() => setSelectedLog(log)}
                                                 >

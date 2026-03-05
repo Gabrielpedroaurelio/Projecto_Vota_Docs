@@ -12,7 +12,7 @@ export default function PollVote() {
     const { poll, loading, error, voting, success, castVote } = usePollVote(id || '');
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
 
-    if (loading) return <><NavMenu /><Loading texto="Loading poll..." /></>;
+    if (loading) return <><NavMenu /><Loading texto="Carregando enquete" /></>;
 
     if (error && !poll) {
         return (
@@ -21,7 +21,7 @@ export default function PollVote() {
                 <div className={styles.voteContainer}>
                     <div className={styles.errorBox}>{error}</div>
                     <button onClick={() => navigate('/')} className={styles.voteButton}>
-                        <HiOutlineArrowLeft /> Back
+                        <span><HiOutlineArrowLeft /> Voltar</span>
                     </button>
                 </div>
             </>
@@ -35,13 +35,13 @@ export default function PollVote() {
                 <div className={styles.voteContainer}>
                     <div className={styles.successMessage}>
                         <HiOutlineCheckCircle className={styles.successIcon} />
-                        <h2 className={styles.title}>Vote Registered!</h2>
+                        <h2 className={styles.title}>Voto Registrado!</h2>
                         <p className={styles.description}>
-                            Thank you for participating. Your vote has been successfully recorded.
+                            Obrigado por participar. Seu voto foi registrado com sucesso.
                         </p>
                         <div className={styles.actions} style={{ marginTop: '2rem' }}>
                             <button onClick={() => navigate('/')} className={styles.voteButton}>
-                                Explore other polls
+                                Explorar outras enquetes
                             </button>
                         </div>
                     </div>
@@ -63,7 +63,7 @@ export default function PollVote() {
 
                 <div className={styles.optionsGrid}>
                     {poll?.options?.map((option) => (
-                        <div 
+                        <div
                             key={option.id_option}
                             className={`${styles.optionCard} ${selectedOption === option.id_option ? styles.optionCardSelected : ''}`}
                             onClick={() => setSelectedOption(option.id_option)}
@@ -80,12 +80,16 @@ export default function PollVote() {
                 </div>
 
                 <div className={styles.actions}>
-                    <button 
+                    <button
                         className={styles.voteButton}
                         disabled={selectedOption === null || voting}
                         onClick={() => selectedOption && castVote(selectedOption)}
                     >
-                        {voting ? 'Processing...' : <><HiOutlineBolt /> Confirm Vote</>}
+                        {voting ? <span>Processando...</span> : (
+                            <span>
+                                <HiOutlineBolt /> Confirmar Voto
+                            </span>
+                        )}
                     </button>
                 </div>
             </div>

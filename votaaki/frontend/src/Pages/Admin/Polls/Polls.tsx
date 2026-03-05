@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { 
-    HiOutlineTicket, 
-    HiOutlinePlus, 
-    HiOutlineMagnifyingGlass, 
+import {
+    HiOutlineTicket,
+    HiOutlinePlus,
+    HiOutlineMagnifyingGlass,
     HiOutlineFunnel,
     HiOutlineTrash,
     HiOutlinePencilSquare,
@@ -59,7 +59,7 @@ export default function Polls() {
             setError(null);
             const data = await adminService.getPolls();
             setPolls(Array.isArray(data) ? data : []);
-            
+
             // Also fetch all options for the reuse list
             const optionsData = await adminService.getOptions();
             setAllExistingOptions(Array.isArray(optionsData) ? optionsData : []);
@@ -85,10 +85,10 @@ export default function Polls() {
                 end_date: poll.end_date ? poll.end_date.split('T')[0] : '',
                 status: poll.status
             });
-            setOptions(poll.options?.map(o => ({ 
+            setOptions(poll.options?.map(o => ({
                 id_option: o.id_option,
-                designation: o.designation, 
-                description: o.description || '' 
+                designation: o.designation,
+                description: o.description || ''
             })) || []);
         } else {
             setFormData({
@@ -116,10 +116,10 @@ export default function Polls() {
             return;
         }
 
-        setOptions([...options, { 
-            id_option: opt.id_option, 
-            designation: opt.designation, 
-            description: opt.description || '' 
+        setOptions([...options, {
+            id_option: opt.id_option,
+            designation: opt.designation,
+            description: opt.description || ''
         }]);
         setIsReuseModalOpen(false);
     };
@@ -140,7 +140,7 @@ export default function Polls() {
 
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         const validOptions = options.filter(opt => opt.designation.trim() !== '');
         if (validOptions.length < 2) {
             alert('Erro: A enquete deve ter pelo menos duas opções preenchidas.');
@@ -187,7 +187,7 @@ export default function Polls() {
         return matchesSearch && matchesStatus;
     });
 
-    const filteredReuseOptions = allExistingOptions.filter(opt => 
+    const filteredReuseOptions = allExistingOptions.filter(opt =>
         opt.designation.toLowerCase().includes(reuseSearch.toLowerCase()) ||
         opt.poll_title.toLowerCase().includes(reuseSearch.toLowerCase())
     );
@@ -208,9 +208,9 @@ export default function Polls() {
                 <div className={styles.filtersBar}>
                     <div className={styles.searchBox}>
                         <HiOutlineMagnifyingGlass />
-                        <input 
-                            type="text" 
-                            placeholder="Buscar enquetes..." 
+                        <input
+                            type="text"
+                            placeholder="Buscar enquetes..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
@@ -290,38 +290,38 @@ export default function Polls() {
                             <div className={styles.formSection}>
                                 <div className={styles.formGroup}>
                                     <label>Título da Enquete</label>
-                                    <input 
-                                        type="text" 
-                                        required 
+                                    <input
+                                        type="text"
+                                        required
                                         value={formData.title}
-                                        onChange={e => setFormData({...formData, title: e.target.value})}
+                                        onChange={e => setFormData({ ...formData, title: e.target.value })}
                                         placeholder="Ex: Qual o melhor framework?"
                                     />
                                 </div>
                                 <div className={styles.formGroup}>
                                     <label>Descrição (Opcional)</label>
-                                    <textarea 
+                                    <textarea
                                         value={formData.description}
-                                        onChange={e => setFormData({...formData, description: e.target.value})}
+                                        onChange={e => setFormData({ ...formData, description: e.target.value })}
                                         placeholder="Contexto sobre a votação..."
                                     />
                                 </div>
                                 <div className={styles.formRow}>
                                     <div className={styles.formGroup}>
                                         <label>Data de Início</label>
-                                        <input 
-                                            type="date" 
+                                        <input
+                                            type="date"
                                             required
                                             value={formData.start_date}
-                                            onChange={e => setFormData({...formData, start_date: e.target.value})}
+                                            onChange={e => setFormData({ ...formData, start_date: e.target.value })}
                                         />
                                     </div>
                                     <div className={styles.formGroup}>
                                         <label>Data de Término</label>
-                                        <input 
-                                            type="date" 
+                                        <input
+                                            type="date"
                                             value={formData.end_date}
-                                            onChange={e => setFormData({...formData, end_date: e.target.value})}
+                                            onChange={e => setFormData({ ...formData, end_date: e.target.value })}
                                         />
                                     </div>
                                 </div>
@@ -343,17 +343,17 @@ export default function Polls() {
                                     {options.map((opt, index) => (
                                         <div key={index} className={`${styles.optionItem} ${opt.id_option ? styles.reused : ''}`}>
                                             <div className={styles.optionInputs}>
-                                                <input 
-                                                    type="text" 
-                                                    placeholder={`Opção ${index + 1}`} 
+                                                <input
+                                                    type="text"
+                                                    placeholder={`Opção ${index + 1}`}
                                                     value={opt.designation}
                                                     required
                                                     readOnly={!!opt.id_option}
                                                     onChange={e => handleOptionChange(index, 'designation', e.target.value)}
                                                 />
-                                                <input 
-                                                    type="text" 
-                                                    placeholder="Breve descrição" 
+                                                <input
+                                                    type="text"
+                                                    placeholder="Breve descrição"
                                                     value={opt.description}
                                                     readOnly={!!opt.id_option}
                                                     onChange={e => handleOptionChange(index, 'description', e.target.value)}
@@ -391,9 +391,9 @@ export default function Polls() {
                         <div className={styles.reuseContent}>
                             <div className={styles.reuseSearch}>
                                 <HiOutlineMagnifyingGlass />
-                                <input 
-                                    type="text" 
-                                    placeholder="Pesquisar por nome ou enquete original..." 
+                                <input
+                                    type="text"
+                                    placeholder="Pesquisar por nome ou enquete original..."
                                     value={reuseSearch}
                                     onChange={e => setReuseSearch(e.target.value)}
                                 />

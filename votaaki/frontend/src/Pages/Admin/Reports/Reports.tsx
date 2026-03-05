@@ -1,15 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
-import { 
-    HiOutlineChartPie, 
-    HiOutlineArrowDownTray, 
+import {
+    HiOutlineChartPie,
+    HiOutlineArrowDownTray,
     HiOutlineFunnel,
     HiOutlineCalendar,
     HiOutlineChartBar,
     HiOutlineUsers,
     HiOutlineCheckCircle
 } from 'react-icons/hi2';
-import { 
-    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
+import {
+    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     BarChart, Bar, PieChart, Pie, Cell, Legend
 } from 'recharts';
 import { adminService } from '../../../Services/adminService';
@@ -67,10 +67,10 @@ export default function Reports() {
 
     const exportToCSV = () => {
         if (!reportData.length) return;
-        
+
         const headers = ['Periodo', 'Total Votos', 'Utilizadores Unicos', 'Enquetes Votadas'];
         const rows = reportData.map(d => [d.period, d.total_votes, d.unique_users, d.voted_polls]);
-        
+
         const csvContent = [
             headers.join(','),
             ...rows.map(r => r.join(','))
@@ -171,15 +171,15 @@ export default function Reports() {
                             <AreaChart data={reportData}>
                                 <defs>
                                     <linearGradient id="colorVotes" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
-                                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                <XAxis dataKey="period" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
-                                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
-                                <Tooltip 
-                                    contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}}
+                                <XAxis dataKey="period" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                                <Tooltip
+                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
                                 />
                                 <Area type="monotone" dataKey="total_votes" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorVotes)" />
                             </AreaChart>
@@ -195,8 +195,8 @@ export default function Reports() {
                             <BarChart data={stats?.topPolls} layout="vertical">
                                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
                                 <XAxis type="number" hide />
-                                <YAxis dataKey="title" type="category" width={100} axisLine={false} tickLine={false} tick={{fill: '#475569', fontSize: 11}} />
-                                <Tooltip cursor={{fill: '#f8fafc'}} />
+                                <YAxis dataKey="title" type="category" width={100} axisLine={false} tickLine={false} tick={{ fill: '#475569', fontSize: 11 }} />
+                                <Tooltip cursor={{ fill: '#f8fafc' }} />
                                 <Bar dataKey="total_votes" fill="#8884d8" radius={[0, 4, 4, 0]}>
                                     {stats?.topPolls?.map((_, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
@@ -227,7 +227,7 @@ export default function Reports() {
                                     ))}
                                 </Pie>
                                 <Tooltip />
-                                <Legend verticalAlign="bottom" height={36}/>
+                                <Legend verticalAlign="bottom" height={36} />
                             </PieChart>
                         </ResponsiveContainer>
                     </div>
@@ -240,9 +240,9 @@ export default function Reports() {
                         <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={stats?.votesByDay}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                <XAxis dataKey="week_day" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
-                                <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
-                                <Tooltip cursor={{fill: '#f8fafc'}} />
+                                <XAxis dataKey="week_day" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                                <Tooltip cursor={{ fill: '#f8fafc' }} />
                                 <Bar dataKey="total_votes" fill="#6366f1" radius={[8, 8, 0, 0]} barSize={40} />
                             </BarChart>
                         </ResponsiveContainer>

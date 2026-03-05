@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../Services/authService';
-import type { UserLogin, UserRegister, UserData } from '../@types/types';
+import type { UserLogin, UserRegister, User } from '../@types/types';
 
 export function useAuth() {
-    const [user, setUser] = useState<UserData | null>(() => {
+    const [user, setUser] = useState<User | null>(() => {
         const savedUser = localStorage.getItem('user');
         return savedUser ? JSON.parse(savedUser) : null;
     });
@@ -22,7 +22,7 @@ export function useAuth() {
             setUser(response.user);
             navigate(response.user.user_type === 'admin' ? '/dashboard' : '/');
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : 'Invalid credentials';
+            const message = err instanceof Error ? err.message : 'Credenciais inválidas';
             setError(message);
         } finally {
             setLoading(false);
@@ -36,7 +36,7 @@ export function useAuth() {
             await authService.register(data);
             return true;
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : 'Error registering';
+            const message = err instanceof Error ? err.message : 'Erro ao registrar';
             setError(message);
             return false;
         } finally {

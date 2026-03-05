@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { 
-    HiOutlineHome, 
-    HiOutlineUserCircle, 
+import {
+    HiOutlineHome,
+    HiOutlineUserCircle,
     HiOutlineArrowRightOnRectangle,
     HiOutlineSquaresPlus,
     HiOutlineUsers
@@ -24,7 +24,7 @@ export default function NavMenu() {
                 <img src="/logo_votaaki.png" alt="VotaAki" />
                 <span className={styles.logoText}>VotaAki</span>
             </div>
-            
+
             <nav className={styles.navbar}>
                 <Link to="/" className={styles.navLink}>
                     <HiOutlineHome /> <span>Início</span>
@@ -53,7 +53,7 @@ export default function NavMenu() {
                             <HiOutlineArrowRightOnRectangle /> <span>Sair</span>
                         </button>
                     ) : (
-                        <Link to="/auth" className={styles.loginBtn}>Entrar</Link>
+                        <Link to="/auth" className={styles.loginBtn}><span>Entrar</span></Link>
                     )}
                 </div>
             </nav>
