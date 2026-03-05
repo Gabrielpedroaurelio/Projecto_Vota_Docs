@@ -43,6 +43,7 @@ export interface Poll {
     total_votes: number;
     options?: PollOption[];
     user_voted?: boolean;
+    voted_option_id?: number;
 }
 
 export interface PollCardProps {
