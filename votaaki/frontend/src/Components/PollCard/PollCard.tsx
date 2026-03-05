@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom';
-import { 
-    HiOutlineClock, 
-    HiOutlineUsers, 
-    HiOutlineBolt, 
+import {
+    HiOutlineClock,
+    HiOutlineUsers,
+    HiOutlineBolt,
     HiOutlineChartBar,
     HiOutlineCheckCircle,
     HiOutlineCalendarDays,
@@ -42,13 +42,13 @@ export default function PollCard({ poll, onVote }: PollCardProps) {
                     <span>{poll.total_votes || 0} votos</span>
                 </div>
             </div>
-            
+
             <div className={styles.cardContent}>
                 <h3 className={styles.title}>{poll.title}</h3>
                 <p className={styles.description}>
                     {poll.description || 'Sem descrição detalhada para esta enquete.'}
                 </p>
-                
+
                 <div className={styles.metaContainer}>
                     <div className={styles.metaItem}>
                         <HiOutlineCalendarDays />
@@ -56,18 +56,18 @@ export default function PollCard({ poll, onVote }: PollCardProps) {
                     </div>
                 </div>
             </div>
-            
+
             <div className={styles.cardFooter}>
                 {!isClosed ? (
                     user ? (
-                        <button 
+                        <button
                             className={styles.primaryButton}
                             onClick={() => onVote?.(String(poll.id_poll))}
                         >
                             <HiOutlineBolt /> Votar Agora
                         </button>
                     ) : (
-                        <button 
+                        <button
                             className={styles.loginButton}
                             onClick={() => navigate('/auth')}
                         >
@@ -75,14 +75,14 @@ export default function PollCard({ poll, onVote }: PollCardProps) {
                         </button>
                     )
                 ) : (
-                    <button 
+                    <button
                         className={styles.secondaryButton}
                         onClick={() => navigate(`/vote/${String(poll.id_poll)}`)}
                     >
                         <HiOutlineChartBar /> Ver Resultados
                     </button>
                 )}
-                
+
                 {poll.user_voted && (
                     <div className={styles.votedStatus}>
                         <HiOutlineCheckCircle />
