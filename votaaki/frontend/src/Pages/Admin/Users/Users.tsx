@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { 
-    HiOutlineUsers, 
-    HiOutlineMagnifyingGlass, 
+import {
+    HiOutlineUsers,
+    HiOutlineMagnifyingGlass,
     HiOutlineFunnel,
     HiOutlineTrash,
     HiOutlinePencilSquare,
@@ -19,13 +19,13 @@ export default function Users() {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    
+
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [formLoading, setFormLoading] = useState(false);
-    
+
     // Form State
     const [formData, setFormData] = useState({
         name: '',
@@ -96,7 +96,7 @@ export default function Users() {
                 // Remove password from update if empty
                 const { password: _, ...updateData } = formData;
                 const payload = formData.password ? formData : updateData;
-                
+
                 await adminService.updateUser(selectedUser.id_user, payload);
                 alert('Utilizador atualizado com sucesso!');
             }
@@ -112,7 +112,7 @@ export default function Users() {
 
     const handleToggleStatus = async (user: User) => {
         const newStatus = user.status === 'active' ? 'inactive' : 'active';
-        if (!confirm(`Deseja alterar o status de ${user.name} para ${newStatus}?`)) return;
+        if (!confirm(`Deseja alterar o status de ${user.name} para ${newStatus === 'active' ? 'Ativo' : 'Inativo'}?`)) return;
 
         try {
             await adminService.updateUser(user.id_user, { status: newStatus });
@@ -144,8 +144,8 @@ export default function Users() {
 
     return (
         <div className={styles.pageWrapper}>
-            
-            
+
+
             <main className={styles.container}>
                 <header className={styles.header}>
                     <div className={styles.titleSection}>
@@ -160,9 +160,9 @@ export default function Users() {
                 <div className={styles.filtersBar}>
                     <div className={styles.searchBox}>
                         <HiOutlineMagnifyingGlass />
-                        <input 
-                            type="text" 
-                            placeholder="Buscar por nome ou email..." 
+                        <input
+                            type="text"
+                            placeholder="Buscar por nome ou email..."
                             value={search}
                             onChange={(e) => { setSearch(e.target.value); }}
                         />
@@ -170,8 +170,8 @@ export default function Users() {
 
                     <div className={styles.filterGroup}>
                         <HiOutlineFunnel />
-                        <select 
-                            value={statusFilter} 
+                        <select
+                            value={statusFilter}
                             onChange={(e) => { setStatusFilter(e.target.value); }}
                         >
                             <option value="all">Todos os Status</option>
@@ -226,30 +226,30 @@ export default function Users() {
                                         </td>
                                         <td>
                                             <span className={`${styles.statusDot} ${styles[u.status]}`}>
-                                                {u.status}
+                                                {u.status === 'active' ? 'Ativo' : u.status === 'inactive' ? 'Inativo' : 'Banido'}
                                             </span>
                                         </td>
                                         <td>{formatDate(u.created_at)}</td>
                                         <td>{u.last_login ? formatDate(u.last_login) : 'Nunca'}</td>
                                         <td>
                                             <div className={styles.actions}>
-                                                <button 
+                                                <button
                                                     onClick={() => handleToggleStatus(u)}
                                                     className={styles.actionBtn}
                                                     title={u.status === 'active' ? 'Desativar' : 'Ativar'}
                                                 >
                                                     {u.status === 'active' ? <HiOutlineNoSymbol /> : <HiOutlineShieldCheck />}
                                                 </button>
-                                                <button 
+                                                <button
                                                     onClick={() => handleOpenModal('edit', u)}
-                                                    className={styles.actionBtn} 
+                                                    className={styles.actionBtn}
                                                     title="Editar"
                                                 >
                                                     <HiOutlinePencilSquare />
                                                 </button>
-                                                <button 
+                                                <button
                                                     onClick={() => handleDeleteUser(u)}
-                                                    className={`${styles.actionBtn} ${styles.delete}`} 
+                                                    className={`${styles.actionBtn} ${styles.delete}`}
                                                     title="Excluir"
                                                 >
                                                     <HiOutlineTrash />
@@ -279,37 +279,37 @@ export default function Users() {
                             <h2>{modalMode === 'create' ? 'Novo Utilizador' : 'Editar Utilizador'}</h2>
                             <button className={styles.closeBtn} onClick={() => setIsModalOpen(false)}>×</button>
                         </div>
-                        
+
                         <form onSubmit={handleFormSubmit} className={styles.modalForm}>
                             <div className={styles.formGroup}>
                                 <label>Nome Completo</label>
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     required
                                     value={formData.name}
-                                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                     placeholder="Ex: João Silva"
                                 />
                             </div>
 
                             <div className={styles.formGroup}>
                                 <label>Email</label>
-                                <input 
-                                    type="email" 
+                                <input
+                                    type="email"
                                     required
                                     value={formData.email}
-                                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                     placeholder="joao@votaaki.pt"
                                 />
                             </div>
 
                             <div className={styles.formGroup}>
                                 <label>{modalMode === 'create' ? 'Palavra-passe' : 'Nova Palavra-passe (deixe vazio para manter)'}</label>
-                                <input 
-                                    type="password" 
+                                <input
+                                    type="password"
                                     required={modalMode === 'create'}
                                     value={formData.password}
-                                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                     placeholder="******"
                                 />
                             </div>
@@ -317,9 +317,9 @@ export default function Users() {
                             <div className={styles.formRow}>
                                 <div className={styles.formGroup}>
                                     <label>Tipo de Conta</label>
-                                    <select 
+                                    <select
                                         value={formData.user_type}
-                                        onChange={(e) => setFormData({...formData, user_type: e.target.value})}
+                                        onChange={(e) => setFormData({ ...formData, user_type: e.target.value })}
                                     >
                                         <option value="user">Utilizador Comum</option>
                                         <option value="admin">Administrador</option>
@@ -328,9 +328,9 @@ export default function Users() {
 
                                 <div className={styles.formGroup}>
                                     <label>Status</label>
-                                    <select 
+                                    <select
                                         value={formData.status}
-                                        onChange={(e) => setFormData({...formData, status: e.target.value as any})}
+                                        onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
                                     >
                                         <option value="active">Ativo</option>
                                         <option value="inactive">Inativo</option>
@@ -340,16 +340,16 @@ export default function Users() {
                             </div>
 
                             <div className={styles.modalFooter}>
-                                <button 
-                                    type="button" 
-                                    className={styles.cancelBtn} 
+                                <button
+                                    type="button"
+                                    className={styles.cancelBtn}
                                     onClick={() => setIsModalOpen(false)}
                                 >
                                     Cancelar
                                 </button>
-                                <button 
-                                    type="submit" 
-                                    className={styles.submitBtn} 
+                                <button
+                                    type="submit"
+                                    className={styles.submitBtn}
                                     disabled={formLoading}
                                 >
                                     {formLoading ? 'A processar...' : (modalMode === 'create' ? 'Criar Utilizador' : 'Guardar Alterações')}

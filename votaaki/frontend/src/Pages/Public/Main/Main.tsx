@@ -12,7 +12,7 @@ export default function Main() {
 
     const filteredPolls = useMemo(() => {
         if (!polls) return [];
-        return polls.filter(poll => 
+        return polls.filter(poll =>
             poll.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
             poll.description?.toLowerCase().includes(searchTerm.toLowerCase())
         );
@@ -32,7 +32,7 @@ export default function Main() {
     return (
         <div className={styles.pageWrapper}>
             <NavMenu />
-            
+
             <header className={styles.heroSection}>
                 <div className={styles.heroContent}>
                     <h1 className={styles.heroTitle}>Decisões Colectivas, <br /><span>Resultados Transparentes</span></h1>
@@ -43,30 +43,32 @@ export default function Main() {
             </header>
 
             <SearchBarAdmin onSearch={setSearchTerm} />
-            
+
             <main className={styles.mainContainer}>
                 <div className={styles.sectionHeader}>
                     <h2 className={styles.sectionTitle}>
-                        {searchTerm ? `Resultados para "${searchTerm}"` : 'Enquetes em Destaque'}
+                        <span>{searchTerm ? `Resultados para "${searchTerm}"` : 'Enquetes em Destaque'}</span>
                     </h2>
                     <span className={styles.countBadge}>{filteredPolls.length} enquetes</span>
                 </div>
-                
+
                 <section className={styles.pollsGrid}>
                     {filteredPolls.length > 0 ? (
                         filteredPolls.map(poll => (
-                            <PollCard 
-                                key={poll.id_poll} 
-                                poll={poll} 
+                            <PollCard
+                                key={poll.id_poll}
+                                poll={poll}
                                 onVote={(id) => window.location.href = `/vote/${id}`}
                             />
                         ))
                     ) : (
                         <div className={styles.emptyContainer}>
                             <p className={styles.emptyMessage}>
-                                {searchTerm 
-                                    ? "Nenhuma enquete corresponde à sua busca." 
-                                    : "Não foram encontradas enquetes no momento."}
+                                <span>
+                                    {searchTerm
+                                        ? "Nenhuma enquete corresponde à sua busca."
+                                        : "Não foram encontradas enquetes no momento."}
+                                </span>
                             </p>
                         </div>
                     )}
