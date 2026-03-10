@@ -174,7 +174,7 @@ export default function History() {
                         <div className={styles.filterGroup}>
                             <label><HiOutlineMagnifyingGlass /> Tabela</label>
                             <input
-                                placeholder="Ex: Poll, User"
+                                placeholder="Ex: Enquete, Utilizador"
                                 name="tableName"
                                 value={filters.tableName}
                                 onChange={handleFilterChange}

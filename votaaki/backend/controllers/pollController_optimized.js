@@ -16,7 +16,7 @@ export const createPoll = async (req, res) => {
   const id_user = req.user.id;
 
   if (!options || options.length < 2) {
-    return res.status(400).json({ message: 'A poll must have at least two vote options.' });
+    return res.status(400).json({ message: 'Uma enquete deve ter pelo menos duas opções de voto.' });
   }
 
   const connection = await db.getConnection();
@@ -51,7 +51,7 @@ export const createPoll = async (req, res) => {
     );
 
     // 3. Log Activity
-    await logActivity(id_user, 'Poll', id_poll, 'Insert', null, { title, options_count: options.length });
+    await logActivity(id_user, 'Enquete', id_poll, 'Inseriu', null, { title, options_count: options.length });
 
     await connection.commit();
 
@@ -79,7 +79,7 @@ export const createPoll = async (req, res) => {
     `, [id_poll, id_poll]);
 
     res.status(201).json({
-      message: 'Poll created successfully',
+      message: 'Enquete criada com sucesso',
       poll: {
         ...pollData[0],
         options: pollOptions
@@ -89,7 +89,7 @@ export const createPoll = async (req, res) => {
   } catch (error) {
     await connection.rollback();
     console.error('Optimized Create Poll Error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   } finally {
     connection.release();
   }
@@ -172,7 +172,7 @@ export const getPollsOptimized = async (req, res) => {
 
   } catch (error) {
     console.error('Error listing optimized polls:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };
 
@@ -200,7 +200,7 @@ export const getPollByIdOptimized = async (req, res) => {
     `, [id]);
 
     if (polls.length === 0) {
-      return res.status(404).json({ message: 'Poll not found' });
+      return res.status(404).json({ message: 'Enquete não encontrada' });
     }
 
     const poll = polls[0];
@@ -240,6 +240,6 @@ export const getPollByIdOptimized = async (req, res) => {
 
   } catch (error) {
     console.error('Error getting optimized poll:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };

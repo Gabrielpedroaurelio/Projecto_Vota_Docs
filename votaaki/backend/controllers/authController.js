@@ -37,7 +37,7 @@ export const register = async (req, res) => {
     // Check if user already exists
     const [existingUser] = await db.execute('SELECT * FROM User WHERE email = ?', [email]);
     if (existingUser.length > 0) {
-      return res.status(400).json({ message: 'Sorry, this email is already registered.' });
+      return res.status(400).json({ message: 'Lamentamos, mas este e-mail já está registado.' });
     }
 
     // Encrypt password
@@ -50,10 +50,10 @@ export const register = async (req, res) => {
       [name, email, password_hash]
     );
 
-    res.status(201).json({ message: 'Account created successfully!', userId: result.insertId });
+    res.status(201).json({ message: 'Conta criada com sucesso!', userId: result.insertId });
   } catch (error) {
     console.error('Registration Error:', error);
-    res.status(500).json({ message: 'Server error during registration.' });
+    res.status(500).json({ message: 'Erro no servidor durante o registo.' });
   }
 };
 
@@ -70,18 +70,19 @@ export const login = async (req, res) => {
 
     // Check if user exists
     if (!user) {
-      return res.status(400).json({ message: 'Usuario Não Encontrado' });
+      return res.status(400).json({ message: 'Utilizador não encontrado.' });
     }
 
     // Compare password
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
-      return res.status(400).json({ message: 'Senha Errada' });
+      return res.status(400).json({ message: 'Palavra-passe incorreta.' });
     }
 
     // Check account status
     if (user.status !== 'active') {
-      return res.status(403).json({ message: `Your account is currently ${user.status}.` });
+      const statusMap = { 'inactive': 'inativa', 'banned': 'banida' };
+      return res.status(403).json({ message: `A sua conta está atualmente ${statusMap[user.status] || user.status}.` });
     }
 
     // Update last login
@@ -110,7 +111,7 @@ export const login = async (req, res) => {
     });
   } catch (error) {
     console.error('Login Error:', error);
-    res.status(500).json({ message: 'Internal error processing login.' });
+    res.status(500).json({ message: 'Erro interno ao processar o login.' });
   }
 };
 
@@ -125,9 +126,9 @@ export const logout = async (req, res) => {
       'UPDATE LoginLog SET logout_time = NOW() WHERE id_user = ? AND logout_time IS NULL ORDER BY login_time DESC LIMIT 1',
       [id_user]
     );
-    res.json({ message: 'Logged out successfully.' });
+    res.json({ message: 'Sessão encerrada com sucesso.' });
   } catch (error) {
     console.error('Logout Error:', error);
-    res.status(500).json({ message: 'Error during logout.' });
+    res.status(500).json({ message: 'Erro durante o encerramento da sessão.' });
   }
 };

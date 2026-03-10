@@ -1,22 +1,45 @@
 .card {
-    background: white;
-    border: 1px solid var(--slate-200);
-    border-radius: 12px;
-    padding: 1.25rem;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
-    transition: all 0.15s ease-in-out;
+    transition: var(--transition-base);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    position: relative;
+    overflow: hidden;
+}
+
+.card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--primary-gradient);
+    opacity: 0;
+    transition: var(--transition-fast);
 }
 
 .card:hover {
-    border-color: var(--slate-400);
-    background: var(--slate-50);
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(99, 102, 241, 0.2);
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.card:hover::after {
+    opacity: 1;
 }
 
 .cardInactive {
     opacity: 0.7;
-    background: var(--slate-50);
+    filter: grayscale(0.5);
 }
 
 .cardHeader {
@@ -69,6 +92,7 @@
     line-height: 1.6;
     display: -webkit-box;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
     margin-bottom: 1rem;

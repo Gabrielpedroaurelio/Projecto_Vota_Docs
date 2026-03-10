@@ -35,6 +35,8 @@ export function usePollVote(pollId: string) {
             await voteService.castVote(poll.id_poll, optionId);
             setSuccess(true);
             setError(null);
+            // Reload poll to get updated counts and user_voted status
+            await loadPoll();
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : 'Erro ao registrar o voto';
             setError(message);

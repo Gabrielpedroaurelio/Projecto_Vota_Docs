@@ -206,9 +206,9 @@
     text-transform: uppercase;
 }
 
-.insert { background: #ecfdf5; color: #059669; }
-.update { background: #eff6ff; color: #2563eb; }
-.delete { background: #fef2f2; color: #dc2626; }
+.insert, .inseriu { background: #ecfdf5; color: #059669; }
+.update, .actualizou { background: #eff6ff; color: #2563eb; }
+.delete, .apagou { background: #fef2f2; color: #dc2626; }
 
 .tableInfo small {
     display: block;
