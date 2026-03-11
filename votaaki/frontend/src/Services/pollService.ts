@@ -18,7 +18,12 @@ export const pollService = {
 
     async getPollById(id: number): Promise<Poll> {
         try {
-            const response = await fetch(`${API_URL}/polls/${id}`);
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_URL}/polls/${id}`, {
+                headers: {
+                    'Authorization': token ? `Bearer ${token}` : ''
+                }
+            });
             if (!response.ok) {
                 throw new Error('Error loading poll details');
             }

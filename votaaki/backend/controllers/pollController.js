@@ -5,6 +5,7 @@
  * using transactions to ensure consistency of vote options.
  */
 
+import jwt from 'jsonwebtoken';
 import db from '../db/config.js';
 import { logActivity } from '../utils/logHelper.js';
 
@@ -24,7 +25,7 @@ export const getPollStats = async (req, res) => {
         COALESCE(SUM(fn_poll_total_votes(p.id_poll)), 0) as total_votes_overall
       FROM Poll p
     `);
-    
+
     res.json({ stats: stats[0] });
   } catch (error) {
     console.error('Error fetching poll stats:', error);
@@ -39,7 +40,7 @@ export const updatePoll = async (req, res) => {
   const { id } = req.params;
   const { title, description, start_date, end_date, status, options } = req.body;
   const id_user = req.user.id;
-  
+
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
@@ -62,12 +63,12 @@ export const updatePoll = async (req, res) => {
       // Get current links
       const [currentLinks] = await connection.execute('SELECT id_option FROM Poll_VoteOption WHERE id_poll = ?', [id]);
       const currentOptionIds = currentLinks.map(l => l.id_option);
-      
+
       const newOptionIds = [];
 
       for (const opt of options) {
         let optId = opt.id_option;
-        
+
         if (!optId) {
           // Create new option
           const [optResult] = await connection.execute(
@@ -96,7 +97,7 @@ export const updatePoll = async (req, res) => {
         );
       }
     }
-    
+
     // Log Activity
     await logActivity(id_user, 'Poll', id, 'Update', oldData[0], { title, description, start_date, end_date, status, options_count: options?.length });
 
@@ -118,15 +119,15 @@ export const updatePoll = async (req, res) => {
 export const deletePoll = async (req, res) => {
   const { id } = req.params;
   const id_user = req.user.id;
-  
+
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
-    
+
     // Get data for logging before delete
     const [oldData] = await connection.execute('SELECT * FROM Poll WHERE id_poll = ?', [id]);
     if (oldData.length === 0) {
-        return res.status(404).json({ message: 'Poll not found.' });
+      return res.status(404).json({ message: 'Poll not found.' });
     }
 
     // Deletion is handled by CASCADE in the database (Poll_VoteOption and Vote)
@@ -134,7 +135,7 @@ export const deletePoll = async (req, res) => {
       'DELETE FROM Poll WHERE id_poll = ?',
       [id]
     );
-    
+
     // Log Activity
     await logActivity(id_user, 'Poll', id, 'Delete', oldData[0], null);
 
@@ -230,6 +231,21 @@ export const getPolls = async (req, res) => {
  */
 export const getPollById = async (req, res) => {
   const { id } = req.params;
+
+  // Extraction of token for optional user identification
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1];
+  let id_user = null;
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      id_user = decoded.id;
+    } catch (err) {
+      // Ignore invalid tokens for this public route
+    }
+  }
+
   try {
     const [polls] = await db.execute(`
       SELECT p.*, u.name as creator, 
@@ -238,7 +254,7 @@ export const getPollById = async (req, res) => {
       JOIN User u ON p.id_user = u.id_user
       WHERE id_poll = ?
     `, [id]);
-    
+
     if (polls.length === 0) {
       return res.status(404).json({ message: 'Poll not found.' });
     }
@@ -250,7 +266,29 @@ export const getPollById = async (req, res) => {
       WHERE pvo.id_poll = ?
     `, [id]);
 
-    res.json({ ...polls[0], options });
+    let user_voted = false;
+    let voted_option_id = null;
+
+    if (id_user) {
+      const [votes] = await db.execute(`
+        SELECT pvo.id_option 
+        FROM Vote v
+        JOIN Poll_VoteOption pvo ON v.id_poll_option = pvo.id_poll_option
+        WHERE v.id_user = ? AND pvo.id_poll = ?
+      `, [id_user, id]);
+
+      if (votes.length > 0) {
+        user_voted = true;
+        voted_option_id = votes[0].id_option;
+      }
+    }
+
+    res.json({
+      ...polls[0],
+      options,
+      user_voted,
+      voted_option_id
+    });
   } catch (error) {
     console.error('Error Getting Poll:', error);
     res.status(500).json({ message: 'Error loading poll details.' });
