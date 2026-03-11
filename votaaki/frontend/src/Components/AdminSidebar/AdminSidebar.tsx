@@ -8,7 +8,8 @@ import {
     HiOutlineDocumentChartBar,
     HiOutlineUserCircle,
     HiOutlineArrowLeftOnRectangle,
-    HiOutlineClock
+    HiOutlineClock,
+    HiOutlineHome
 } from 'react-icons/hi2';
 import styles from './AdminSidebar.module.css';
 
@@ -16,6 +17,7 @@ export default function AdminSidebar() {
     const { logout } = useAuth();
 
     const menuItems = [
+        { path: '/', label: 'Página Inicial', icon: <HiOutlineHome /> },
         { path: '/admin/dashboard', label: 'Dashboard', icon: <HiOutlineChartPie /> },
         { path: '/admin/users', label: 'Usuários', icon: <HiOutlineUsers /> },
         { path: '/admin/polls', label: 'Enquetes', icon: <HiOutlineListBullet /> },

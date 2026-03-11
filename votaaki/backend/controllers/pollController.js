@@ -29,7 +29,7 @@ export const getPollStats = async (req, res) => {
     res.json({ stats: stats[0] });
   } catch (error) {
     console.error('Error fetching poll stats:', error);
-    res.status(500).json({ message: 'Error loading poll statistics.' });
+    res.status(500).json({ message: 'Erro ao carregar estatísticas das enquetes.' });
   }
 };
 
@@ -49,7 +49,7 @@ export const updatePoll = async (req, res) => {
     const [oldData] = await connection.execute('SELECT * FROM Poll WHERE id_poll = ?', [id]);
     if (oldData.length === 0) {
       await connection.rollback();
-      return res.status(404).json({ message: 'Poll not found.' });
+      return res.status(404).json({ message: 'Enquete não encontrada.' });
     }
 
     // 2. Update Main Poll
@@ -99,14 +99,14 @@ export const updatePoll = async (req, res) => {
     }
 
     // Log Activity
-    await logActivity(id_user, 'Poll', id, 'Update', oldData[0], { title, description, start_date, end_date, status, options_count: options?.length });
+    await logActivity(id_user, 'Enquete', id, 'Actualizou', oldData[0], { title, description, start_date, end_date, status, options_count: options?.length });
 
     await connection.commit();
-    res.json({ message: 'Poll synchronized successfully!' });
+    res.json({ message: 'Enquete sincronizada com sucesso!' });
   } catch (error) {
     await connection.rollback();
     console.error('Error updating poll:', error);
-    res.status(500).json({ message: 'Error updating poll.' });
+    res.status(500).json({ message: 'Erro ao atualizar a enquete.' });
   } finally {
     connection.release();
   }
@@ -127,7 +127,7 @@ export const deletePoll = async (req, res) => {
     // Get data for logging before delete
     const [oldData] = await connection.execute('SELECT * FROM Poll WHERE id_poll = ?', [id]);
     if (oldData.length === 0) {
-      return res.status(404).json({ message: 'Poll not found.' });
+      return res.status(404).json({ message: 'Enquete não encontrada.' });
     }
 
     // Deletion is handled by CASCADE in the database (Poll_VoteOption and Vote)
@@ -137,14 +137,14 @@ export const deletePoll = async (req, res) => {
     );
 
     // Log Activity
-    await logActivity(id_user, 'Poll', id, 'Delete', oldData[0], null);
+    await logActivity(id_user, 'Enquete', id, 'Apagou', oldData[0], null);
 
     await connection.commit();
-    res.json({ message: 'Poll deleted successfully!' });
+    res.json({ message: 'Enquete eliminada com sucesso!' });
   } catch (error) {
     await connection.rollback();
     console.error('Error deleting poll:', error);
-    res.status(500).json({ message: 'Error deleting poll.' });
+    res.status(500).json({ message: 'Erro ao eliminar a enquete.' });
   } finally {
     connection.release();
   }
@@ -158,7 +158,7 @@ export const createPoll = async (req, res) => {
   const id_user = req.user.id;
 
   if (!options || options.length < 2) {
-    return res.status(400).json({ message: 'A poll must have at least two vote options.' });
+    return res.status(400).json({ message: 'Uma enquete deve ter pelo menos duas opções de voto.' });
   }
 
   const connection = await db.getConnection();
@@ -192,14 +192,14 @@ export const createPoll = async (req, res) => {
     }
 
     // 3. Log Activity
-    await logActivity(id_user, 'Poll', id_poll, 'Insert', null, { title, description, start_date, end_date, options_count: options.length });
+    await logActivity(id_user, 'Enquete', id_poll, 'Inseriu', null, { title, description, start_date, end_date, options_count: options.length });
 
     await connection.commit();
-    res.status(201).json({ message: 'Poll published successfully!', id_poll });
+    res.status(201).json({ message: 'Enquete publicada com sucesso!', id_poll });
   } catch (error) {
     await connection.rollback();
     console.error('Error Creating Poll:', error);
-    res.status(500).json({ message: 'Failed to process poll creation.' });
+    res.status(500).json({ message: 'Falha ao processar a criação da enquete.' });
   } finally {
     connection.release();
   }
@@ -214,7 +214,9 @@ export const getPolls = async (req, res) => {
       SELECT 
         p.*, 
         u.name as creator,
-        fn_poll_total_votes(p.id_poll) as total_votes
+        (SELECT COUNT(*) FROM Vote v 
+         JOIN Poll_VoteOption pvo_sum ON v.id_poll_option = pvo_sum.id_poll_option 
+         WHERE pvo_sum.id_poll = p.id_poll) as total_votes
       FROM Poll p 
       JOIN User u ON p.id_user = u.id_user 
       ORDER BY p.start_date DESC
@@ -222,7 +224,7 @@ export const getPolls = async (req, res) => {
     res.json(polls);
   } catch (error) {
     console.error('Error Listing Polls:', error);
-    res.status(500).json({ message: 'Could not load polls.' });
+    res.status(500).json({ message: 'Não foi possível carregar as enquetes.' });
   }
 };
 
@@ -249,18 +251,21 @@ export const getPollById = async (req, res) => {
   try {
     const [polls] = await db.execute(`
       SELECT p.*, u.name as creator, 
-             fn_poll_total_votes(p.id_poll) as total_votes
+             (SELECT COUNT(*) FROM Vote v 
+              JOIN Poll_VoteOption pvo_sum ON v.id_poll_option = pvo_sum.id_poll_option 
+              WHERE pvo_sum.id_poll = p.id_poll) as total_votes
       FROM Poll p
       JOIN User u ON p.id_user = u.id_user
       WHERE id_poll = ?
     `, [id]);
 
     if (polls.length === 0) {
-      return res.status(404).json({ message: 'Poll not found.' });
+      return res.status(404).json({ message: 'Enquete não encontrada.' });
     }
 
     const [options] = await db.execute(`
-      SELECT vo.*, pvo.id_poll_option 
+      SELECT vo.*, pvo.id_poll_option,
+             (SELECT COUNT(*) FROM Vote v WHERE v.id_poll_option = pvo.id_poll_option) as total_votes
       FROM VoteOption vo 
       JOIN Poll_VoteOption pvo ON vo.id_option = pvo.id_option 
       WHERE pvo.id_poll = ?
@@ -291,6 +296,6 @@ export const getPollById = async (req, res) => {
     });
   } catch (error) {
     console.error('Error Getting Poll:', error);
-    res.status(500).json({ message: 'Error loading poll details.' });
+    res.status(500).json({ message: 'Erro ao carregar os detalhes da enquete.' });
   }
 };

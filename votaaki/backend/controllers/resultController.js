@@ -76,7 +76,7 @@ export const getDashboardStats = async (req, res) => {
     });
   } catch (error) {
     console.error('Error getting dashboard stats:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };
 
@@ -102,7 +102,7 @@ export const getPollResults = async (req, res) => {
     `, [id]);
 
     if (results.length === 0) {
-      return res.status(404).json({ message: 'Poll not found' });
+      return res.status(404).json({ message: 'Enquete não encontrada' });
     }
 
     // Total votes using English function
@@ -128,7 +128,7 @@ export const getPollResults = async (req, res) => {
     });
   } catch (error) {
     console.error('Error getting poll results:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };
 
@@ -203,7 +203,7 @@ export const getVotingReport = async (req, res) => {
     });
   } catch (error) {
     console.error('Error generating voting report:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };
 
@@ -228,7 +228,7 @@ export const getUserParticipationStats = async (req, res) => {
     `, [id]);
 
     if (participation.length === 0) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Utilizador não encontrado' });
     }
 
     // Detailed voting history
@@ -254,7 +254,7 @@ export const getUserParticipationStats = async (req, res) => {
     });
   } catch (error) {
     console.error('Error getting participation stats:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };
 
@@ -300,6 +300,6 @@ export const getEngagementMetrics = async (req, res) => {
     });
   } catch (error) {
     console.error('Error getting engagement metrics:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };

@@ -23,7 +23,7 @@ export const getOptions = async (req, res) => {
     res.json(options);
   } catch (error) {
     console.error('Error listing all options:', error);
-    res.status(500).json({ message: 'Error loading vote options.' });
+    res.status(500).json({ message: 'Erro ao carregar as opções de voto.' });
   }
 };
 
@@ -44,7 +44,7 @@ export const getOptionsByPoll = async (req, res) => {
     res.json(options);
   } catch (error) {
     console.error('Error listing poll options:', error);
-    res.status(500).json({ message: 'Error loading poll options.' });
+    res.status(500).json({ message: 'Erro ao carregar as opções da enquete.' });
   }
 };
 
@@ -56,7 +56,7 @@ export const createOption = async (req, res) => {
   const id_user = req.user.id;
 
   if (!designation || !id_poll) {
-    return res.status(400).json({ message: 'Designation and poll ID are required.' });
+    return res.status(400).json({ message: 'A designação e o ID da enquete são obrigatórios.' });
   }
 
   const connection = await db.getConnection();
@@ -77,14 +77,14 @@ export const createOption = async (req, res) => {
     );
 
     // 3. Log Activity
-    await logActivity(id_user, 'VoteOption', id_option, 'Insert', null, { designation, description, id_poll });
+    await logActivity(id_user, 'Opção de Voto', id_option, 'Inseriu', null, { designation, description, id_poll });
 
     await connection.commit();
-    res.status(201).json({ message: 'Vote option created successfully!', id_option });
+    res.status(201).json({ message: 'Opção de voto criada com sucesso!', id_option });
   } catch (error) {
     await connection.rollback();
     console.error('Error creating vote option:', error);
-    res.status(500).json({ message: 'Error creating vote option.' });
+    res.status(500).json({ message: 'Erro ao criar a opção de voto.' });
   } finally {
     connection.release();
   }
@@ -101,7 +101,7 @@ export const updateOption = async (req, res) => {
   try {
     const [oldData] = await db.execute('SELECT * FROM VoteOption WHERE id_option = ?', [id]);
     if (oldData.length === 0) {
-      return res.status(404).json({ message: 'Vote option not found.' });
+      return res.status(404).json({ message: 'Opção de voto não encontrada.' });
     }
 
     const [result] = await db.execute(
@@ -110,12 +110,12 @@ export const updateOption = async (req, res) => {
     );
 
     // Log Activity
-    await logActivity(id_user, 'VoteOption', id, 'Update', oldData[0], { designation, description });
+    await logActivity(id_user, 'Opção de Voto', id, 'Actualizou', oldData[0], { designation, description });
 
-    res.json({ message: 'Vote option updated successfully!' });
+    res.json({ message: 'Opção de voto atualizada com sucesso!' });
   } catch (error) {
     console.error('Error updating vote option:', error);
-    res.status(500).json({ message: 'Error updating vote option.' });
+    res.status(500).json({ message: 'Erro ao atualizar a opção de voto.' });
   }
 };
 
@@ -132,7 +132,7 @@ export const deleteOption = async (req, res) => {
 
     const [oldData] = await connection.execute('SELECT * FROM VoteOption WHERE id_option = ?', [id]);
     if (oldData.length === 0) {
-        return res.status(404).json({ message: 'Vote option not found.' });
+        return res.status(404).json({ message: 'Opção de voto não encontrada.' });
     }
 
     // Cascade deletion should handle Poll_VoteOption and Vote, 
@@ -147,14 +147,14 @@ export const deleteOption = async (req, res) => {
     );
 
     // Log Activity
-    await logActivity(id_user, 'VoteOption', id, 'Delete', oldData[0], null);
+    await logActivity(id_user, 'Opção de Voto', id, 'Apagou', oldData[0], null);
 
     await connection.commit();
-    res.json({ message: 'Vote option deleted successfully!' });
+    res.json({ message: 'Opção de voto eliminada com sucesso!' });
   } catch (error) {
     await connection.rollback();
     console.error('Error deleting vote option:', error);
-    res.status(500).json({ message: 'Error deleting vote option.' });
+    res.status(500).json({ message: 'Erro ao eliminar a opção de voto.' });
   } finally {
     connection.release();
   }

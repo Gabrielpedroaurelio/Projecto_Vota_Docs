@@ -68,7 +68,7 @@ export default function Users() {
             setFormData({
                 name: user.name,
                 email: user.email,
-                password: '', // Leave empty for security
+                password: '', 
                 user_type: user.user_type,
                 status: user.status
             });
@@ -93,12 +93,14 @@ export default function Users() {
                 await adminService.createUser(formData);
                 alert('Utilizador criado com sucesso!');
             } else if (selectedUser) {
-                // Remove password from update if empty
-                const { password: _, ...updateData } = formData;
-                const payload = formData.password ? formData : updateData;
+                // Admin can only change status and user_type
+                const payload = {
+                    user_type: formData.user_type,
+                    status: formData.status
+                };
 
                 await adminService.updateUser(selectedUser.id_user, payload);
-                alert('Utilizador atualizado com sucesso!');
+                alert('Cargo e status atualizados com sucesso!');
             }
             setIsModalOpen(false);
             fetchUsers();
@@ -122,18 +124,6 @@ export default function Users() {
         }
     };
 
-    const handleDeleteUser = async (user: User) => {
-        if (!confirm(`TEM CERTEZA que deseja excluir o usuário ${user.name}? Esta ação é irreversível.`)) return;
-
-        try {
-            await adminService.deleteUser(user.id_user);
-            fetchUsers();
-        } catch (err: unknown) {
-            const error = err as Error;
-            alert(error.message || 'Erro ao excluir usuário.');
-        }
-    };
-
     const formatDate = (dateStr: string) => {
         return new Date(dateStr).toLocaleDateString('pt-PT', {
             day: '2-digit',
@@ -144,13 +134,11 @@ export default function Users() {
 
     return (
         <div className={styles.pageWrapper}>
-
-
             <main className={styles.container}>
                 <header className={styles.header}>
                     <div className={styles.titleSection}>
                         <h1><HiOutlineUsers /> Gestão de Utilizadores</h1>
-                        <p>Controle de acessos, permissões e status das contas.</p>
+                        <p>Controle de cargos, permissões e status das contas.</p>
                     </div>
                     <button className={styles.addBtn} onClick={() => handleOpenModal('create')}>
                         <HiOutlinePlus /> Novo Utilizador
@@ -198,7 +186,7 @@ export default function Users() {
                             <thead>
                                 <tr>
                                     <th>Utilizador</th>
-                                    <th>Tipo</th>
+                                    <th>Cargo</th>
                                     <th>Status</th>
                                     <th>Data de Criação</th>
                                     <th>Último Acesso</th>
@@ -243,16 +231,9 @@ export default function Users() {
                                                 <button
                                                     onClick={() => handleOpenModal('edit', u)}
                                                     className={styles.actionBtn}
-                                                    title="Editar"
+                                                    title="Mudar Cargo/Status"
                                                 >
                                                     <HiOutlinePencilSquare />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteUser(u)}
-                                                    className={`${styles.actionBtn} ${styles.delete}`}
-                                                    title="Excluir"
-                                                >
-                                                    <HiOutlineTrash />
                                                 </button>
                                             </div>
                                         </td>
@@ -266,7 +247,6 @@ export default function Users() {
                                 )}
                             </tbody>
                         </table>
-
                     </div>
                 )}
             </main>
@@ -276,47 +256,61 @@ export default function Users() {
                 <div className={styles.modalOverlay} onClick={() => setIsModalOpen(false)}>
                     <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
                         <div className={styles.modalHeader}>
-                            <h2>{modalMode === 'create' ? 'Novo Utilizador' : 'Editar Utilizador'}</h2>
+                            <h2>{modalMode === 'create' ? 'Novo Utilizador' : 'Gestão de Cargo e Status'}</h2>
                             <button className={styles.closeBtn} onClick={() => setIsModalOpen(false)}>×</button>
                         </div>
 
                         <form onSubmit={handleFormSubmit} className={styles.modalForm}>
-                            <div className={styles.formGroup}>
-                                <label>Nome Completo</label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    placeholder="Ex: João Silva"
-                                />
-                            </div>
+                            {modalMode === 'edit' && selectedUser && (
+                                <div className={styles.userEditPreview}>
+                                    <div className={styles.avatarSmall}>{selectedUser.name.charAt(0)}</div>
+                                    <div>
+                                        <strong>{selectedUser.name}</strong>
+                                        <p>{selectedUser.email}</p>
+                                    </div>
+                                </div>
+                            )}
 
-                            <div className={styles.formGroup}>
-                                <label>Email</label>
-                                <input
-                                    type="email"
-                                    required
-                                    value={formData.email}
-                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    placeholder="joao@votaaki.pt"
-                                />
-                            </div>
+                            {modalMode === 'create' && (
+                                <>
+                                    <div className={styles.formGroup}>
+                                        <label>Nome Completo</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={formData.name}
+                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                            placeholder="Ex: João Silva"
+                                        />
+                                    </div>
 
-                            <div className={styles.formGroup}>
-                                <label>{modalMode === 'create' ? 'Palavra-passe' : 'Nova Palavra-passe (deixe vazio para manter)'}</label>
-                                <input
-                                    type="password"
-                                    required={modalMode === 'create'}
-                                    value={formData.password}
-                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                    placeholder="******"
-                                />
-                            </div>
+                                    <div className={styles.formGroup}>
+                                        <label>Email</label>
+                                        <input
+                                            type="email"
+                                            required
+                                            value={formData.email}
+                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                            placeholder="joao@votaaki.pt"
+                                        />
+                                    </div>
+
+                                    <div className={styles.formGroup}>
+                                        <label>Palavra-passe</label>
+                                        <input
+                                            type="password"
+                                            required
+                                            value={formData.password}
+                                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                            placeholder="******"
+                                        />
+                                    </div>
+                                </>
+                            )}
 
                             <div className={styles.formRow}>
                                 <div className={styles.formGroup}>
-                                    <label>Tipo de Conta</label>
+                                    <label>Tipo de Conta (Cargo)</label>
                                     <select
                                         value={formData.user_type}
                                         onChange={(e) => setFormData({ ...formData, user_type: e.target.value })}
@@ -327,7 +321,7 @@ export default function Users() {
                                 </div>
 
                                 <div className={styles.formGroup}>
-                                    <label>Status</label>
+                                    <label>Status da Conta</label>
                                     <select
                                         value={formData.status}
                                         onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
