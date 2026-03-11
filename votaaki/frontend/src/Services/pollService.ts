@@ -1,6 +1,6 @@
 import type { Poll } from "../@types/types";
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'http://localhost:3000/api';
 
 export const pollService = {
     async getAllPolls(): Promise<Poll[]> {

@@ -15,6 +15,9 @@ import {
 import { adminService } from '../../../Services/adminService';
 import Loading from '../../../Components/Loading/Loading';
 import styles from './Reports.module.css';
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const COLORS = ['#6366f1', '#a855f7', '#ec4899', '#f59e0b', '#10b981'];
 
@@ -65,26 +68,117 @@ export default function Reports() {
         fetchData();
     }, [fetchData]);
 
-    const exportToCSV = () => {
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+
+    const exportToExcel = () => {
         if (!reportData.length) return;
 
-        const headers = ['Periodo', 'Total Votos', 'Utilizadores Unicos', 'Enquetes Votadas'];
-        const rows = reportData.map(d => [d.period, d.total_votes, d.unique_users, d.voted_polls]);
+        // Mapear os dados para português
+        const dataInPortuguese = reportData.map(item => ({
+            'Período': item.period,
+            'Total de Votos': item.total_votes,
+            'Utilizadores Únicos': item.unique_users,
+            'Enquetes Votadas': item.voted_polls
+        }));
 
-        const csvContent = [
-            headers.join(','),
-            ...rows.map(r => r.join(','))
-        ].join('\n');
+        const worksheet = XLSX.utils.json_to_sheet(dataInPortuguese);
+        const workbook = XLSX.utils.book_new();
 
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.setAttribute('href', url);
-        link.setAttribute('download', `votaaki_relatorio_${startDate}_${endDate}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // Ajustar largura das colunas para melhor visualização
+        const colWidths = [
+            { wch: 15 }, // Período
+            { wch: 15 }, // Total de Votos
+            { wch: 20 }, // Utilizadores Únicos
+            { wch: 18 }  // Enquetes Votadas
+        ];
+        worksheet['!cols'] = colWidths;
+
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Relatório de Votações");
+
+        XLSX.writeFile(
+            workbook,
+            `votaaki_relatorio_${startDate}_${endDate}.xlsx`
+        );
+    };
+
+    const exportToPDF = () => {
+        if (!reportData.length) return;
+
+        const doc = new jsPDF();
+
+        // Configurar fonte e tamanhos
+        doc.setFontSize(14);
+
+        // Cabeçalho centralizado
+        const pageWidth = doc.internal.pageSize.getWidth();
+
+        doc.setFontSize(16);
+        doc.setFont("helvetica", "bold");
+        doc.text("República de Angola", pageWidth / 2, 20, { align: "center" });
+
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text("Relatório de Votações", pageWidth / 2, 40, { align: "center" });
+
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "normal");
+        doc.text("VotaAki", pageWidth / 2, 30, { align: "center" });
+
+        // Linha separadora
+        doc.setLineWidth(0.5);
+        doc.line(20, 45, pageWidth - 20, 45);
+
+        // Informação do período centralizada
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "italic");
+        doc.text(`Período: ${startDate} até ${endDate}`, pageWidth / 2, 52, { align: "center" });
+
+        // Tabela
+        const tableData = reportData.map(d => [
+            d.period,
+            d.total_votes,
+            d.unique_users,
+            d.voted_polls
+        ]);
+
+        autoTable(doc, {
+            startY: 60, // Ajustado para dar espaço ao cabeçalho
+            head: [["Período", "Total Votos", "Utilizadores Únicos", "Enquetes Votadas"]],
+            body: tableData,
+            headStyles: {
+                fillColor: [99, 102, 241], // Cor #6366f1 em RGB
+                textColor: [255, 255, 255],
+                fontSize: 11,
+                fontStyle: 'bold'
+            },
+            alternateRowStyles: {
+                fillColor: [245, 247, 250]
+            },
+            margin: { top: 60 },
+            styles: {
+                fontSize: 10,
+                cellPadding: 5,
+                lineColor: [226, 232, 240],
+                lineWidth: 0.1
+            },
+            columnStyles: {
+                0: { cellWidth: 'auto' }, // Período
+                1: { cellWidth: 40, halign: 'center' }, // Total Votos
+                2: { cellWidth: 45, halign: 'center' }, // Utilizadores Únicos
+                3: { cellWidth: 45, halign: 'center' } // Enquetes Votadas
+            }
+        });
+
+        // Rodapé com data de geração
+        const today = new Date().toLocaleDateString('pt-PT');
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "italic");
+        doc.text(`Documento gerado em: ${today}`, pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: "center" });
+
+        doc.save(`votaaki_relatorio_${startDate}_${endDate}.pdf`);
     };
 
     if (loading && !stats) return <div className={styles.loadingWrapper}><Loading /></div>;
@@ -101,9 +195,15 @@ export default function Reports() {
                     <h1><HiOutlineChartPie /> Estatísticas e Relatórios</h1>
                     <p>Análise detalhada do engajamento e desempenho do sistema.</p>
                 </div>
-                <button className={styles.exportBtn} onClick={exportToCSV}>
-                    <HiOutlineArrowDownTray /> Exportar CSV
-                </button>
+                <div>
+                    <button className={styles.exportBtn} onClick={exportToPDF}>
+                        <HiOutlineArrowDownTray /> PDF
+                    </button>
+
+                    <button className={styles.exportBtn} onClick={exportToExcel}>
+                        <HiOutlineArrowDownTray /> Excel
+                    </button>
+                </div>
             </header>
 
             <div className={styles.filtersBar}>

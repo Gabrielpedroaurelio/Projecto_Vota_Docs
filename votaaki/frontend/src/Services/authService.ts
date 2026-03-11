@@ -1,10 +1,10 @@
-import type { UserLogin, UserRegister, UserData } from '../@types/types';
+import type { UserLogin, UserRegister, User } from '../@types/types';
 
-const API_URL = 'http://localhost:5000/api/auth';
+const API_URL = 'http://localhost:3000/api/auth';
 
 export interface AuthResponse {
     token: string;
-    user: UserData;
+    user: User;
 }
 
 export const authService = {
