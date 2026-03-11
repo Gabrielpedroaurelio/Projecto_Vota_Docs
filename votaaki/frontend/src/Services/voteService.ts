@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'http://localhost:3000/api';
 
 export const voteService = {
     async castVote(id_poll: number, id_option: number): Promise<void> {
