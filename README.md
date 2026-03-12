@@ -1,4 +1,4 @@
-# 🗳️ VotaAki - Sistema de Enquetes e Votação Online
+# 🗳️ VotaAki - Sistema de  Votação Online
 
 ![Status](https://img.shields.io/badge/status-em%20desenvolvimento-yellow)
 ![React](https://img.shields.io/badge/React-Front--end-blue?logo=react)
