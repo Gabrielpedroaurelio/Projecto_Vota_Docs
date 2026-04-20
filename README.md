@@ -71,5 +71,5 @@ Este projeto está sob a licença **MIT**.
 ---
 
 ## 👤 Autor
-Desenvolvido por **Grupo 01** e **Antigravity AI**.
+Desenvolvido por **Gabriel Pedro Aurélio**
 💻 Focado em criar soluções digitais que unem performance e design de alto nível.
