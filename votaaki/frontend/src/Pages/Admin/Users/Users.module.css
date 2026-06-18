@@ -425,3 +425,39 @@
         grid-template-columns: 1fr;
     }
 }
+
+.userEditPreview {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(99, 102, 241, 0.05);
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+.avatarSmall {
+    width: 40px;
+    height: 40px;
+    background: #6366f1;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.2rem;
+}
+
+.userEditPreview div strong {
+    display: block;
+    font-size: 1rem;
+    color: #1e293b;
+}
+
+.userEditPreview div p {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin: 0;
+}

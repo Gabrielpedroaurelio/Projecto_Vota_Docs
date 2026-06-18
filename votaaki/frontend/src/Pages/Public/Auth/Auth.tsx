@@ -11,8 +11,12 @@ export default function Auth() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (user?.user_type === 'admin') {
-            navigate('/admin/dashboard');
+        if (user) {
+            if (user.user_type === 'admin') {
+                navigate('/admin/dashboard');
+            } else {
+                navigate('/');
+            }
         }
     }, [user, navigate]);
 
@@ -50,10 +54,16 @@ export default function Auth() {
                 setIsSignup(false);
             }
         } else {
-            await login({
-                email: formData.email,
-                password: formData.password
-            });
+            try {
+                await login({
+                    email: formData.email,
+                    password: formData.password
+                });
+                // Navigate will happen here since user state changed and useEffect will trigger, 
+                // OR we can do it explicitly here as well. Note: useAuth in Auth.tsx now shares the same user.
+            } catch (err) {
+                // Error is already handled in Context
+            }
         }
     };
 

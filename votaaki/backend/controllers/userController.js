@@ -49,7 +49,7 @@ export const getUsers = async (req, res) => {
   } catch (error) {
     console.error('Error listing users:', error);
     return res.status(500).json({ 
-      message: 'Internal server error',
+      message: 'Erro interno do servidor',
       error: error.message
     });
   }
@@ -79,7 +79,7 @@ export const getUserById = async (req, res) => {
     );
 
     if (users.length === 0) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Utilizador não encontrado' });
     }
 
     // User statistics (polls created)
@@ -100,7 +100,7 @@ export const getUserById = async (req, res) => {
     res.json(user);
   } catch (error) {
     console.error('Error getting user:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };
 
@@ -120,7 +120,7 @@ export const createUser = async (req, res) => {
 
     if (!name || !email || !password) {
       return res.status(400).json({ 
-        message: 'Name, email and password are required' 
+        message: 'Nome, e-mail e palavra-passe são obrigatórios' 
       });
     }
 
@@ -132,7 +132,7 @@ export const createUser = async (req, res) => {
 
     if (existingUser.length > 0) {
       return res.status(400).json({ 
-        message: 'Email already registered' 
+        message: 'E-mail já registado' 
       });
     }
 
@@ -147,10 +147,10 @@ export const createUser = async (req, res) => {
     );
 
     // Activity Log
-    await logActivity(adminId, 'User', result.insertId, 'Insert', null, { name, email, user_type, status });
+    await logActivity(adminId, 'Utilizador', result.insertId, 'Inseriu', null, { name, email, user_type, status });
 
     res.status(201).json({
-      message: 'User created successfully',
+      message: 'Utilizador criado com sucesso',
       user: {
         id: result.insertId,
         name,
@@ -161,7 +161,7 @@ export const createUser = async (req, res) => {
     });
   } catch (error) {
     console.error('Error creating user:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };
 
@@ -186,7 +186,7 @@ export const updateUser = async (req, res) => {
     );
 
     if (oldData.length === 0) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Utilizador não encontrado' });
     }
 
     // Check email uniqueness
@@ -198,7 +198,7 @@ export const updateUser = async (req, res) => {
 
       if (emailCheck.length > 0) {
         return res.status(400).json({ 
-          message: 'Email already in use by another user' 
+          message: 'O e-mail já está a ser utilizado por outro utilizador' 
         });
       }
     }
@@ -239,12 +239,12 @@ export const updateUser = async (req, res) => {
     );
 
     // Activity Log
-    await logActivity(adminId, 'User', id, 'Update', oldData[0], req.body);
+    await logActivity(adminId, 'Utilizador', id, 'Actualizou', oldData[0], req.body);
 
-    res.json({ message: 'User updated successfully' });
+    res.json({ message: 'Utilizador atualizado com sucesso' });
   } catch (error) {
     console.error('Error updating user:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };
 
@@ -258,12 +258,12 @@ export const updateUserPassword = async (req, res) => {
     const { password } = req.body;
 
     if (!password) {
-      return res.status(400).json({ message: 'Password is required' });
+      return res.status(400).json({ message: 'A palavra-passe é obrigatória' });
     }
 
     const [existing] = await db.execute('SELECT id_user FROM User WHERE id_user = ?', [id]);
     if (existing.length === 0) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Utilizador não encontrado' });
     }
 
     const saltRounds = 12;
@@ -272,12 +272,12 @@ export const updateUserPassword = async (req, res) => {
     await db.execute('UPDATE User SET password_hash = ? WHERE id_user = ?', [password_hash, id]);
 
     // Activity Log
-    await logActivity(adminId, 'User', id, 'Update', { password: 'HIDDEN' }, { password: 'CHANGED' });
+    await logActivity(adminId, 'Utilizador', id, 'Actualizou', { password: 'HIDDEN' }, { password: 'CHANGED' });
 
-    res.json({ message: 'Password updated successfully' });
+    res.json({ message: 'Palavra-passe atualizada com sucesso' });
   } catch (error) {
     console.error('Error updating password:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };
 
@@ -291,7 +291,7 @@ export const deleteUser = async (req, res) => {
 
     const [oldData] = await db.execute('SELECT * FROM User WHERE id_user = ?', [id]);
     if (oldData.length === 0) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Utilizador não encontrado' });
     }
 
     // Protect last active admin
@@ -300,18 +300,18 @@ export const deleteUser = async (req, res) => {
     );
 
     if (adminCount[0].count <= 1 && oldData[0].user_type === 'admin') {
-      return res.status(400).json({ message: 'Cannot delete the last active administrator' });
+      return res.status(400).json({ message: 'Não é possível eliminar o último administrador ativo' });
     }
 
     await db.execute('DELETE FROM User WHERE id_user = ?', [id]);
 
     // Activity Log
-    await logActivity(adminId, 'User', id, 'Delete', oldData[0], null);
+    await logActivity(adminId, 'Utilizador', id, 'Apagou', oldData[0], null);
 
-    res.json({ message: 'User deleted successfully' });
+    res.json({ message: 'Utilizador eliminado com sucesso' });
   } catch (error) {
     console.error('Error deleting user:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };
 
@@ -354,7 +354,7 @@ export const getUserStats = async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching user stats:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };
 
@@ -370,13 +370,13 @@ export const getProfile = async (req, res) => {
     );
 
     if (users.length === 0) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'Utilizador não encontrado' });
     }
 
     res.json(users[0]);
   } catch (error) {
     console.error('Error getting profile:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };
 
@@ -394,7 +394,7 @@ export const updateProfile = async (req, res) => {
     const user = users[0];
 
     if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        return res.status(404).json({ message: 'Utilizador não encontrado' });
     }
 
     let updateFields = [];
@@ -411,7 +411,7 @@ export const updateProfile = async (req, res) => {
         [email, userId]
       );
       if (emailCheck.length > 0) {
-        return res.status(400).json({ message: 'Email already in use' });
+        return res.status(400).json({ message: 'E-mail já em uso' });
       }
       updateFields.push('email = ?');
       updateValues.push(email);
@@ -425,11 +425,11 @@ export const updateProfile = async (req, res) => {
     // Password change logic
     if (newPassword) {
       if (!currentPassword) {
-          return res.status(400).json({ message: 'Current password is required to change password' });
+          return res.status(400).json({ message: 'A palavra-passe atual é necessária para alterar a palavra-passe' });
       }
       const isMatch = await bcrypt.compare(currentPassword, user.password_hash);
       if (!isMatch) {
-          return res.status(400).json({ message: 'Current password incorrect' });
+          return res.status(400).json({ message: 'Palavra-passe atual incorreta' });
       }
       const salt = await bcrypt.genSalt(10);
       const password_hash = await bcrypt.hash(newPassword, salt);
@@ -438,7 +438,7 @@ export const updateProfile = async (req, res) => {
     }
 
     if (updateFields.length === 0) {
-      return res.status(400).json({ message: 'No fields to update' });
+      return res.status(400).json({ message: 'Nenhum campo para atualizar' });
     }
 
     updateValues.push(userId);
@@ -448,12 +448,12 @@ export const updateProfile = async (req, res) => {
     );
 
     res.json({ 
-        message: 'Profile updated successfully',
+        message: 'Perfil atualizado com sucesso',
         image: path_thumb // Return new image path to update frontend state
     });
   } catch (error) {
     console.error('Error updating profile:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };
 /**
@@ -489,7 +489,7 @@ export const getLoginLogs = async (req, res) => {
     res.json(logs);
   } catch (error) {
     console.error('Error fetching login logs:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };
 
@@ -534,6 +534,6 @@ export const getActivityLogs = async (req, res) => {
     res.json(logs);
   } catch (error) {
     console.error('Error fetching activity logs:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: 'Erro interno do servidor' });
   }
 };

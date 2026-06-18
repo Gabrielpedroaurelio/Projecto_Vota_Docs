@@ -1,20 +1,20 @@
 .voteContainer {
     padding: 2rem;
     max-width: 800px;
-    margin: 0 auto;
-    animation: fadeIn 0.5s ease-out;
+    margin: 4rem auto;
+    padding: 3rem;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .pollHeader {
@@ -24,46 +24,54 @@
 
 .title {
     font-size: 2.5rem;
-    font-weight: 700;
+    font-weight: 800;
+    color: var(--color-text-primary);
     margin-bottom: 1rem;
-    color: var(--text-primary);
+    letter-spacing: -1px;
+    line-height: 1.2;
 }
 
 .description {
+    color: var(--color-text-secondary);
     font-size: 1.1rem;
-    color: var(--text-secondary);
     line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto;
 }
 
 .optionsGrid {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1.5rem;
-    margin-bottom: 3rem;
+    margin-top: 1rem;
 }
 
 .optionCard {
     background: var(--bg-card);
     border: 2px solid var(--border-color);
-    border-radius: 16px;
+    border-radius: var(--radius-md);
     padding: 1.5rem;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: var(--transition-base);
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
     gap: 1rem;
+    position: relative;
+    overflow: hidden;
+    height: 100%;
 }
 
 .optionCard:hover {
     border-color: var(--primary-color);
-    transform: translateX(10px);
     background: var(--bg-hover);
+    transform: translateY(-5px);
 }
 
 .optionCardSelected {
-    border-color: var(--primary-color);
-    background: var(--bg-selected);
-    box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.1);
+    border-color: var(--color-primary);
+    background: var(--color-accent-light);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }
 
 .radioCircle {
@@ -113,6 +121,7 @@
 .actions {
     display: flex;
     justify-content: center;
+    margin-bottom: 2.5rem;
 }
 
 .voteButton {
@@ -158,4 +167,54 @@
     margin-bottom: 2rem;
     border-radius: 4px;
     color: var(--red-600);
+}
+
+.resultsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.voteCount {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.percentage {
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.progressContainer {
+    width: 100%;
+    height: 10px;
+    background: var(--bg-hover);
+    border-radius: 5px;
+    overflow: hidden;
+    margin-top: 0.75rem;
+}
+
+.progressBar {
+    height: 100%;
+    background: var(--primary-gradient);
+    border-radius: 5px;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.optionCardResults {
+    flex-direction: column;
+    align-items: stretch;
+    cursor: default;
+}
+
+.optionCardResults:hover {
+    transform: none;
+    border-color: var(--border-color);
+}
+
+.optionCardVoted {
+    border-color: var(--primary-color);
+    background: var(--bg-selected);
 }

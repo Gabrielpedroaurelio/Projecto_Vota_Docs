@@ -22,7 +22,7 @@ export const vote = async (req, res) => {
     );
 
     if (bridge.length === 0) {
-      return res.status(404).json({ message: 'The selected option does not belong to this poll.' });
+      return res.status(404).json({ message: 'A opção selecionada não pertence a esta enquete.' });
     }
 
     const id_poll_option = bridge[0].id_poll_option;
@@ -37,7 +37,7 @@ export const vote = async (req, res) => {
     );
 
     if (existingVote.length > 0) {
-      return res.status(400).json({ message: 'You have already registered your vote in this poll. Thank you for participating.' });
+      return res.status(400).json({ message: 'Já registou o seu voto nesta enquete. Obrigado por participar.' });
     }
 
     // 3. Insert the vote
@@ -48,9 +48,9 @@ export const vote = async (req, res) => {
     );
 
     // 4. Log the activity (Optional: voting is high frequency, but required by user for "all resources")
-    await logActivity(id_user, 'Vote', result.insertId, 'Insert', null, { id_poll_option });
+    await logActivity(id_user, 'Voto', result.insertId, 'Inseriu', null, { id_poll_option });
 
-    res.status(201).json({ message: 'Vote recorded successfully!' });
+    res.status(201).json({ message: 'Voto registado com sucesso!' });
   } catch (error) {
     console.error('Error Voting:', error);
     
@@ -59,7 +59,7 @@ export const vote = async (req, res) => {
       return res.status(400).json({ message: error.message });
     }
     
-    res.status(500).json({ message: 'Could not register your vote.' });
+    res.status(500).json({ message: 'Não foi possível registar o seu voto.' });
   }
 };
 
@@ -88,6 +88,6 @@ export const getResults = async (req, res) => {
     });
   } catch (error) {
     console.error('Error Fetching Results:', error);
-    res.status(500).json({ message: 'Error processing poll statistics.' });
+    res.status(500).json({ message: 'Erro ao processar as estatísticas da enquete.' });
   }
 };

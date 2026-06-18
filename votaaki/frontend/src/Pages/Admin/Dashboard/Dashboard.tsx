@@ -101,12 +101,11 @@ export default function Dashboard() {
 
     const getActionIcon = (type?: string) => {
         if (!type) return <HiOutlineBolt />;
-        switch (type.toLowerCase()) {
-            case 'insert': return <HiOutlinePlusCircle style={{ color: '#10b981' }} />;
-            case 'update': return <HiOutlinePencilSquare style={{ color: '#f59e0b' }} />;
-            case 'delete': return <HiOutlineTrash style={{ color: '#ef4444' }} />;
-            default: return <HiOutlineBolt />;
-        }
+        const action = type.toLowerCase();
+        if (action.includes('insert') || action.includes('inseriu')) return <HiOutlinePlusCircle style={{ color: '#10b981' }} />;
+        if (action.includes('update') || action.includes('actualizou')) return <HiOutlinePencilSquare style={{ color: '#f59e0b' }} />;
+        if (action.includes('delete') || action.includes('apagou')) return <HiOutlineTrash style={{ color: '#ef4444' }} />;
+        return <HiOutlineBolt />;
     };
 
     const formatTime = (dateStr: string) => {
@@ -256,7 +255,7 @@ export default function Dashboard() {
                                     <div className={styles.activityContent}>
                                         <div className={styles.activityUser}>{typedLog.user_name}</div>
                                         <div className={styles.activityText}>
-                                            {typedLog.action}d a {typedLog.table_name}
+                                            {typedLog.action} {typedLog.table_name === 'Opção de Voto' ? 'uma' : 'um'} {typedLog.table_name}
                                         </div>
                                     </div>
                                     <div className={styles.activityTime}>{formatTime(typedLog.created_at)}</div>
